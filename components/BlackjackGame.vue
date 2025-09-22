@@ -95,7 +95,7 @@
             Deal Cards
           </button>
         </div>
-        <div class="preset-bets">
+        <div class="preset-bets" v-if="chips > 0">
           <button @click="betAmount = minBet" class="btn btn-preset">{{ minBet }}</button>
           <button @click="betAmount = Math.min(chips, 50)" class="btn btn-preset" v-if="chips >= 50">50</button>
           <button @click="betAmount = Math.min(chips, 100)" class="btn btn-preset" v-if="chips >= 100">100</button>
@@ -157,6 +157,11 @@
         <button @click="stand" :disabled="!canStand" class="btn btn-secondary">
           Stand
         </button>
+        <button @click="doubleDown" class="btn btn-secondary"
+          :disabled="hasDoubledDown || playerHand.length !== 2 || chips < currentBet"
+        >
+          Double Down
+        </button>
         <button @click="split" :disabled="!canSplit" class="btn btn-secondary">
           Split
         </button>
@@ -169,6 +174,12 @@
       <div v-if="phase === 'game-over'" class="game-over-controls">
         <button @click="newGame" class="btn btn-primary">
           {{ chips >= minBet ? 'Next Hand' : 'Game Over' }}
+        </button>
+      </div>
+
+      <div v-if="phase === 'out-of-chips'" class="out-of-chips-controls">
+        <button @click="restartGame" class="btn btn-primary">
+          Restart ?
         </button>
       </div>
     </div>
@@ -191,6 +202,7 @@ const {
   currentBet,
   startingChips,
   targetChips,
+  hasDoubledDown,
 
   // Computed
   playerHandValue,
@@ -209,7 +221,8 @@ const {
   stand,
   split,
   newGame,
-  restartGame
+  restartGame,
+  doubleDown
 } = useBlackjack();
 
 // Local reactive data for UI

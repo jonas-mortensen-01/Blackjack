@@ -2,7 +2,7 @@ import { ref, computed } from 'vue';
 import type { Card } from '../types/Card';
 import { createDeck, shuffleDeck, calculateHandValue } from '../utils/deck';
 
-export type GamePhase = 'setup' | 'betting' | 'dealing' | 'player-turn' | 'dealer-turn' | 'game-over' | 'victory';
+export type GamePhase = 'setup' | 'betting' | 'dealing' | 'player-turn' | 'dealer-turn' | 'game-over' | 'victory' | 'out-of-chips';
 
 export interface GameState {
   deck: Card[];
@@ -24,12 +24,14 @@ export function useBlackjack() {
   const phase = ref<GamePhase>('setup');
   const gameMessage = ref<string>('Welcome to Blackjack! Set your starting chips and win goal to begin.');
   const chips = ref<number>(1000);
-  const currentBet = ref<number>(0);
+  let currentBet = ref<number>(0);
   const startingChips = ref<number>(1000);
   const targetChips = ref<number>(2000);
+  const hasDoubledDown = ref(false);
 
   const playerHandValue = computed(() => calculateHandValue(playerHand.value));
   const dealerHandValue = computed(() => calculateHandValue(dealerHand.value));
+
 
   const canSplit = computed(() => {
     return phase.value === 'player-turn' &&
@@ -50,7 +52,7 @@ export function useBlackjack() {
   });
 
   const maxBet = computed(() => {
-    return Math.min(chips.value, 500); // Set a max bet limit
+    return chips.value; // Set a max bet limit
   });
 
   const minBet = computed(() => {
@@ -199,6 +201,21 @@ export function useBlackjack() {
     dealDealerCard();
   }
 
+  function doubleDown() {
+    if (chips.value >= currentBet.value)
+    {
+      hasDoubledDown.value = true;
+
+      const newCard = deck.value.pop();
+      playerHand.value.push(newCard!);
+
+      chips.value -= currentBet.value;
+      currentBet.value += currentBet.value;
+      
+      stand();
+    }
+  }
+
   function determineWinner() {
     phase.value = 'game-over';
     let winnings = 0;
@@ -238,7 +255,8 @@ export function useBlackjack() {
     }
 
     // Check if player is out of money
-    if (chips.value < minBet.value) {
+    if (chips.value == 0) {
+      phase.value = 'out-of-chips';
       gameMessage.value += ` Game Over! You're out of chips.`;
     } else {
       gameMessage.value += ` Chips: ${chips.value} / Goal: ${targetChips.value}`;
@@ -283,6 +301,7 @@ export function useBlackjack() {
     currentBet,
     startingChips,
     targetChips,
+    hasDoubledDown,
 
     // Computed
     playerHandValue,
@@ -305,6 +324,7 @@ export function useBlackjack() {
     split,
     newGame,
     restartGame,
-    assignDealerHiddenCard
+    assignDealerHiddenCard,
+    doubleDown
   };
 }

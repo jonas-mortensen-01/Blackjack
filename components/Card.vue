@@ -80,7 +80,7 @@ function handleImageLoad() {
 .card {
   width: 80px;
   height: 120px;
-  border: 2px solid #333;
+   border: 2px solid #333;
   border-radius: 8px;
   background: white;
   position: relative;
