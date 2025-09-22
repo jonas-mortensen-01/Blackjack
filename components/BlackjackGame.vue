@@ -91,15 +91,15 @@
             step="5"
             class="bet-input-field"
           />
-          <button @click="submitBet" class="btn btn-primary" :disabled="!isValidBet">
+          <button @click="submitBet" class="btn btn-primary" :disabled="!isValidBet || currentBet > 0">
             Deal Cards
           </button>
         </div>
         <div class="preset-bets" v-if="chips > 0">
-          <button @click="betAmount = minBet" class="btn btn-preset">{{ minBet }}</button>
-          <button @click="betAmount = Math.min(chips, 50)" class="btn btn-preset" v-if="chips >= 50">50</button>
-          <button @click="betAmount = Math.min(chips, 100)" class="btn btn-preset" v-if="chips >= 100">100</button>
-          <button @click="betAmount = chips" class="btn btn-preset-all">All In</button>
+          <button :disabled="currentBet > 0" @click="betAmount = minBet" class="btn btn-preset">{{ minBet }}</button>
+          <button :disabled="currentBet > 0" @click="betAmount = Math.min(chips, 50)" class="btn btn-preset" v-if="chips >= 50">50</button>
+          <button :disabled="currentBet > 0" @click="betAmount = Math.min(chips, 100)" class="btn btn-preset" v-if="chips >= 100">100</button>
+          <button :disabled="currentBet > 0" @click="betAmount = chips" class="btn btn-preset-all">All In</button>
         </div>
       </div>
     </div>

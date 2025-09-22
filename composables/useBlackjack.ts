@@ -184,8 +184,15 @@ export function useBlackjack() {
     setTimeout(() => playDealerTurn(), 1000);
   }
 
-  function playDealerTurn() {
+ function playDealerTurn() {
   const ANIMATION_DURATION = 600; // Match CSS animation duration
+
+  // ✅ If player is already bust, dealer wins immediately
+  if (playerHandValue.value.value > 21) {
+    gameMessage.value = `Player busts with ${playerHandValue.value.value}! Dealer wins automatically.`;
+    setTimeout(() => determineWinner(), ANIMATION_DURATION);
+    return;
+  }
 
   const dealDealerCard = () => {
     const dealerTotal = dealerHandValue.value.value;
@@ -213,12 +220,12 @@ export function useBlackjack() {
     }
 
     setTimeout(() => {
-      dealDealerCard();
-    }, ANIMATION_DURATION);
-  };
+        dealDealerCard();
+      }, ANIMATION_DURATION);
+    };
 
-  dealDealerCard();
-}
+    dealDealerCard();
+  }
 
   function doubleDown() {
     if (chips.value >= currentBet.value)
@@ -292,6 +299,7 @@ export function useBlackjack() {
   function newGame() {
     if (chips.value >= minBet.value) {
       currentBet.value = 0;
+      hasDoubledDown.value = false;
       phase.value = 'betting';
       gameMessage.value = `You have ${chips.value} chips. Goal: ${targetChips.value}. Place your bet for the next hand!`;
     } else {

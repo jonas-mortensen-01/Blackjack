@@ -104,6 +104,7 @@ function handleImageLoad() {
   height: 100%;
   object-fit: cover;
   border-radius: 6px;
+  
 }
 
 .card-suit-value-display {
