@@ -113,7 +113,8 @@ export function useBlackjack() {
 
         setTimeout(() => {
           gameMessage.value = 'Dealing second card to dealer...';
-          dealerHand.value.push(dealCard()!);
+          // Deal placeholder card for dealer's face-down card
+          dealerHand.value.push({ suit: 'placeholder', value: 'hidden' });
 
           setTimeout(() => {
             phase.value = 'player-turn';
@@ -152,11 +153,25 @@ export function useBlackjack() {
     }, ANIMATION_DURATION);
   }
 
+  function assignDealerHiddenCard() {
+    // Find the placeholder card and replace it with a real card
+    const placeholderIndex = dealerHand.value.findIndex(card => card.value === 'hidden');
+    if (placeholderIndex !== -1) {
+      const realCard = dealCard();
+      if (realCard) {
+        dealerHand.value[placeholderIndex] = realCard;
+      }
+    }
+  }
+
   function stand() {
     if (!canStand.value && phase.value !== 'player-turn') return;
 
     phase.value = 'dealer-turn';
-    gameMessage.value = 'Dealer\'s turn...';
+    gameMessage.value = 'Revealing dealer\'s card...';
+
+    // Assign real card to placeholder
+    assignDealerHiddenCard();
 
     setTimeout(() => playDealerTurn(), 1000);
   }
@@ -289,6 +304,7 @@ export function useBlackjack() {
     stand,
     split,
     newGame,
-    restartGame
+    restartGame,
+    assignDealerHiddenCard
   };
 }

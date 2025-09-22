@@ -1,6 +1,6 @@
 <template>
-  <div class="card" :class="{ 'face-down': !isVisible }">
-    <div v-if="isVisible" class="card-content">
+  <div class="card" :class="{ 'face-down': !isVisible || isPlaceholderCard }">
+    <div v-if="isVisible && !isPlaceholderCard" class="card-content">
       <!-- Image Display (if image is provided and loads successfully) -->
       <img
         v-if="image && !imageLoadError"
@@ -54,12 +54,17 @@ const suitSymbol = computed(() => {
     case 'diamonds': return '♦';
     case 'clubs': return '♣';
     case 'spades': return '♠';
+    case 'placeholder': return '';
     default: return '';
   }
 });
 
 const suitColor = computed(() => {
   return props.suit === 'hearts' || props.suit === 'diamonds' ? 'red' : 'black';
+});
+
+const isPlaceholderCard = computed(() => {
+  return props.suit === 'placeholder' || props.value === 'hidden';
 });
 
 function handleImageError() {

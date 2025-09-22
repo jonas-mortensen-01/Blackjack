@@ -53,6 +53,8 @@ export function shuffleDeck(deck: Card[]): Card[] {
 }
 
 export function getCardValue(card: Card): number {
+  if (card.value === 'hidden') return 0; // Placeholder cards have no value
+
   switch (card.value) {
     case 'A': return 11;
     case 'K':
@@ -67,7 +69,9 @@ export function calculateHandValue(cards: Card[]): { value: number; isSoft: bool
   let aces = 0;
 
   for (const card of cards) {
-    if (card.value === 'A') {
+    if (card.value === 'hidden') {
+      continue; // Skip placeholder cards
+    } else if (card.value === 'A') {
       aces++;
       value += 11;
     } else {
