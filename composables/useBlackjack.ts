@@ -97,36 +97,59 @@ export function useBlackjack() {
   }
 
   function dealInitialCards() {
-    playerHand.value.push(dealCard()!);
-    dealerHand.value.push(dealCard()!);
-    playerHand.value.push(dealCard()!);
-    dealerHand.value.push(dealCard()!);
+    const ANIMATION_DURATION = 600; // Match CSS animation duration
 
-    phase.value = 'player-turn';
+    // Deal cards with animation timing
+    gameMessage.value = 'Dealing first card to player...';
+    playerHand.value.push(dealCard()!);
 
-    if (playerHandValue.value.value === 21) {
-      gameMessage.value = 'Blackjack!';
-      stand();
-    } else {
-      gameMessage.value = 'Your turn! Hit, Stand, or Split if possible.';
-    }
+    setTimeout(() => {
+      gameMessage.value = 'Dealing first card to dealer...';
+      dealerHand.value.push(dealCard()!);
+
+      setTimeout(() => {
+        gameMessage.value = 'Dealing second card to player...';
+        playerHand.value.push(dealCard()!);
+
+        setTimeout(() => {
+          gameMessage.value = 'Dealing second card to dealer...';
+          dealerHand.value.push(dealCard()!);
+
+          setTimeout(() => {
+            phase.value = 'player-turn';
+
+            if (playerHandValue.value.value === 21) {
+              gameMessage.value = 'Blackjack! You can stand to continue.';
+            } else {
+              gameMessage.value = 'Your turn! Hit, Stand, or Split if possible.';
+            }
+          }, ANIMATION_DURATION);
+        }, ANIMATION_DURATION);
+      }, ANIMATION_DURATION);
+    }, ANIMATION_DURATION);
   }
 
   function hit() {
     if (!canHit.value) return;
 
+    const ANIMATION_DURATION = 600; // Match CSS animation duration
+
+    gameMessage.value = 'Dealing card...';
     const card = dealCard();
     if (card) {
       playerHand.value.push(card);
     }
 
-    if (isPlayerBust.value) {
-      gameMessage.value = 'Bust! You went over 21.';
-      phase.value = 'game-over';
-    } else if (playerHandValue.value.value === 21) {
-      gameMessage.value = 'You got 21!';
-      stand();
-    }
+    setTimeout(() => {
+      if (isPlayerBust.value) {
+        gameMessage.value = 'Bust! You went over 21.';
+        phase.value = 'game-over';
+      } else if (playerHandValue.value.value === 21) {
+        gameMessage.value = 'You got 21! You can stand to continue.';
+      } else {
+        gameMessage.value = 'Your turn! Hit, Stand, or Split if possible.';
+      }
+    }, ANIMATION_DURATION);
   }
 
   function stand() {
@@ -139,14 +162,26 @@ export function useBlackjack() {
   }
 
   function playDealerTurn() {
-    while (dealerHandValue.value.value < 17) {
-      const card = dealCard();
-      if (card) {
-        dealerHand.value.push(card);
-      }
-    }
+    const ANIMATION_DURATION = 600; // Match CSS animation duration
 
-    setTimeout(() => determineWinner(), 1000);
+    const dealDealerCard = () => {
+      if (dealerHandValue.value.value < 17) {
+        gameMessage.value = `Dealer hits (has ${dealerHandValue.value.value})...`;
+        const card = dealCard();
+        if (card) {
+          dealerHand.value.push(card);
+        }
+
+        setTimeout(() => {
+          dealDealerCard();
+        }, ANIMATION_DURATION);
+      } else {
+        gameMessage.value = `Dealer stands with ${dealerHandValue.value.value}.`;
+        setTimeout(() => determineWinner(), ANIMATION_DURATION);
+      }
+    };
+
+    dealDealerCard();
   }
 
   function determineWinner() {

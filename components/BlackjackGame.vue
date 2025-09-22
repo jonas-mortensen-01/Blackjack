@@ -118,11 +118,12 @@
         <div class="hand">
           <Card
             v-for="(card, index) in dealerHand"
-            :key="`dealer-${index}`"
+            :key="`dealer-${index}-${card.suit}-${card.value}`"
             :suit="card.suit"
             :value="card.value"
             :image="card.image || ''"
             :is-visible="phase !== 'player-turn' || index === 0"
+            class="card-dealing"
           />
         </div>
       </div>
@@ -133,11 +134,12 @@
         <div class="hand">
           <Card
             v-for="(card, index) in playerHand"
-            :key="`player-${index}`"
+            :key="`player-${index}-${card.suit}-${card.value}`"
             :suit="card.suit"
             :value="card.value"
             :image="card.image || ''"
             :is-visible="true"
+            class="card-dealing"
           />
         </div>
         <div v-if="playerHandValue.isSoft && phase === 'player-turn'" class="soft-hand-indicator">
@@ -554,6 +556,27 @@ function updateTargetMin() {
 
 .status-item {
   font-size: 1rem;
+}
+
+/* Card animations */
+.card-dealing {
+  animation: cardSlideIn 0.6s ease-out;
+  animation-fill-mode: forwards;
+  opacity: 0; /* Start invisible until animation begins */
+}
+
+@keyframes cardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.7) rotateX(90deg);
+  }
+  1% {
+    opacity: 1; /* Become visible immediately to respect face-down/face-up state */
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+  }
 }
 
 @media (max-width: 600px) {
