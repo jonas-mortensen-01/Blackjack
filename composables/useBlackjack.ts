@@ -145,8 +145,14 @@ export function useBlackjack() {
 
     setTimeout(() => {
       if (isPlayerBust.value) {
-        gameMessage.value = 'Bust! You went over 21.';
-        phase.value = 'game-over';
+        if (chips.value == 0) {
+          phase.value = 'out-of-chips';
+          gameMessage.value += ` Game Over! You're out of chips.`;
+        }
+        else {
+          gameMessage.value = 'Bust! You went over 21.';
+          phase.value = 'game-over';
+        }
       } else if (playerHandValue.value.value === 21) {
         gameMessage.value = 'You got 21! You can stand to continue.';
       } else {
