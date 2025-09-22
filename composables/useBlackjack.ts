@@ -179,27 +179,40 @@ export function useBlackjack() {
   }
 
   function playDealerTurn() {
-    const ANIMATION_DURATION = 600; // Match CSS animation duration
+  const ANIMATION_DURATION = 600; // Match CSS animation duration
 
-    const dealDealerCard = () => {
-      if (dealerHandValue.value.value < 17) {
-        gameMessage.value = `Dealer hits (has ${dealerHandValue.value.value})...`;
-        const card = dealCard();
-        if (card) {
-          dealerHand.value.push(card);
-        }
+  const dealDealerCard = () => {
+    const dealerTotal = dealerHandValue.value.value;
+    const playerTotal = playerHandValue.value.value;
 
-        setTimeout(() => {
-          dealDealerCard();
-        }, ANIMATION_DURATION);
-      } else {
-        gameMessage.value = `Dealer stands with ${dealerHandValue.value.value}.`;
-        setTimeout(() => determineWinner(), ANIMATION_DURATION);
-      }
-    };
+    // If dealer has already beaten or tied the player (without busting)
+    if (dealerTotal >= playerTotal && dealerTotal <= 21) {
+      gameMessage.value = `Dealer stands with ${dealerTotal}.`;
+      setTimeout(() => determineWinner(), ANIMATION_DURATION);
+      return;
+    }
 
-    dealDealerCard();
-  }
+    // If dealer is bust
+    if (dealerTotal > 21) {
+      gameMessage.value = `Dealer busts with ${dealerTotal}!`;
+      setTimeout(() => determineWinner(), ANIMATION_DURATION);
+      return;
+    }
+
+    // Otherwise, dealer hits
+    gameMessage.value = `Dealer hits (has ${dealerTotal})...`;
+    const card = dealCard();
+    if (card) {
+      dealerHand.value.push(card);
+    }
+
+    setTimeout(() => {
+      dealDealerCard();
+    }, ANIMATION_DURATION);
+  };
+
+  dealDealerCard();
+}
 
   function doubleDown() {
     if (chips.value >= currentBet.value)
