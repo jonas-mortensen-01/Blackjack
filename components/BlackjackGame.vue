@@ -5,7 +5,113 @@
       <div class="game-message">{{ gameMessage }}</div>
     </div>
 
-    <div class="game-board">
+    <!-- Setup Screen -->
+    <div v-if="phase === 'setup'" class="setup-screen">
+      <div class="setup-card">
+        <h2>Welcome to Blackjack!</h2>
+        <div class="chip-setup">
+          <div class="setup-group">
+            <label for="startingChips">Starting Chips:</label>
+            <input
+              id="startingChips"
+              v-model.number="setupChips"
+              type="number"
+              min="50"
+              max="10000"
+              step="50"
+              class="chip-input"
+            />
+          </div>
+          <div class="setup-group">
+            <label for="targetChips">Win Goal:</label>
+            <input
+              id="targetChips"
+              v-model.number="setupTarget"
+              type="number"
+              :min="setupChips * 1.5"
+              max="50000"
+              step="100"
+              class="chip-input"
+            />
+          </div>
+          <button @click="startGame" class="btn btn-primary" :disabled="!isValidSetup">
+            Start Game
+          </button>
+        </div>
+        <div class="preset-section">
+          <div class="preset-group">
+            <h4>Starting Chips</h4>
+            <div class="preset-chips">
+              <button @click="setupChips = 500; updateTargetMin()" class="btn btn-preset">500</button>
+              <button @click="setupChips = 1000; updateTargetMin()" class="btn btn-preset">1000</button>
+              <button @click="setupChips = 2500; updateTargetMin()" class="btn btn-preset">2500</button>
+              <button @click="setupChips = 5000; updateTargetMin()" class="btn btn-preset">5000</button>
+            </div>
+          </div>
+          <div class="preset-group">
+            <h4>Win Goals</h4>
+            <div class="preset-chips">
+              <button @click="setupTarget = setupChips * 2" class="btn btn-preset">2x</button>
+              <button @click="setupTarget = setupChips * 3" class="btn btn-preset">3x</button>
+              <button @click="setupTarget = setupChips * 5" class="btn btn-preset">5x</button>
+              <button @click="setupTarget = setupChips * 10" class="btn btn-preset">10x</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div v-if="phase === 'victory'" class="victory-screen">
+      <div class="victory-card">
+        <h2>🎉 CONGRATULATIONS! 🎉</h2>
+        <div class="victory-message">
+          <p>You reached your goal of <strong>{{ targetChips }}</strong> chips!</p>
+          <p>Final amount: <strong>{{ chips }}</strong> chips</p>
+          <p class="victory-subtitle">You've mastered the art of blackjack!</p>
+        </div>
+        <button @click="restartGame" class="btn btn-victory">
+          Play Again
+        </button>
+      </div>
+    </div>
+
+    <!-- Betting Screen -->
+    <div v-if="phase === 'betting'" class="betting-screen">
+      <div class="chip-display">
+        <h2>💰 Chips: {{ chips }}</h2>
+        <div class="bet-input">
+          <label for="betAmount">Place Your Bet:</label>
+          <input
+            id="betAmount"
+            v-model.number="betAmount"
+            type="number"
+            :min="minBet"
+            :max="Math.min(chips, maxBet)"
+            step="5"
+            class="bet-input-field"
+          />
+          <button @click="submitBet" class="btn btn-primary" :disabled="!isValidBet">
+            Deal Cards
+          </button>
+        </div>
+        <div class="preset-bets">
+          <button @click="betAmount = minBet" class="btn btn-preset">{{ minBet }}</button>
+          <button @click="betAmount = Math.min(chips, 50)" class="btn btn-preset" v-if="chips >= 50">50</button>
+          <button @click="betAmount = Math.min(chips, 100)" class="btn btn-preset" v-if="chips >= 100">100</button>
+          <button @click="betAmount = chips" class="btn btn-preset-all">All In</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Board (visible during dealing, playing, dealer turn, game over) -->
+    <div v-if="phase !== 'setup' && phase !== 'betting'" class="game-board">
+      <div class="game-info">
+        <div class="info-item">💰 Chips: {{ chips }}</div>
+        <div class="info-item">🎯 Bet: {{ currentBet }}</div>
+        <div class="info-item">🃏 Cards: {{ deck.length }}</div>
+      </div>
+
       <!-- Dealer Section -->
       <div class="dealer-section">
         <h3>Dealer ({{ phase === 'player-turn' ? '?' : dealerHandValue.value }})</h3>
@@ -34,17 +140,14 @@
             :is-visible="true"
           />
         </div>
+        <div v-if="playerHandValue.isSoft && phase === 'player-turn'" class="soft-hand-indicator">
+          Soft Hand (Ace as 11)
+        </div>
       </div>
     </div>
 
     <!-- Game Controls -->
     <div class="game-controls">
-      <div v-if="phase === 'betting' || phase === 'game-over'" class="betting-controls">
-        <button @click="newGame" class="btn btn-primary">
-          {{ phase === 'betting' ? 'Start Game' : 'New Game' }}
-        </button>
-      </div>
-
       <div v-if="phase === 'player-turn'" class="player-controls">
         <button @click="hit" :disabled="!canHit" class="btn btn-secondary">
           Hit
@@ -60,22 +163,18 @@
       <div v-if="phase === 'dealer-turn'" class="dealer-controls">
         <div class="dealer-thinking">Dealer is playing...</div>
       </div>
-    </div>
 
-    <!-- Game Status -->
-    <div class="game-status">
-      <div class="status-item">
-        <strong>Cards Remaining:</strong> {{ deck.length }}
-      </div>
-      <div class="status-item" v-if="playerHandValue.isSoft && phase === 'player-turn'">
-        <strong>Soft Hand</strong> (Ace counted as 11)
+      <div v-if="phase === 'game-over'" class="game-over-controls">
+        <button @click="newGame" class="btn btn-primary">
+          {{ chips >= minBet ? 'Next Hand' : 'Game Over' }}
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import Card from './Card.vue';
 import { useBlackjack } from '../composables/useBlackjack';
 
@@ -86,6 +185,10 @@ const {
   dealerHand,
   phase,
   gameMessage,
+  chips,
+  currentBet,
+  startingChips,
+  targetChips,
 
   // Computed
   playerHandValue,
@@ -93,19 +196,56 @@ const {
   canSplit,
   canHit,
   canStand,
+  canBet,
+  maxBet,
+  minBet,
 
   // Actions
-  initializeGame,
+  setStartingChips,
+  placeBet,
   hit,
   stand,
   split,
-  newGame
+  newGame,
+  restartGame
 } = useBlackjack();
 
-onMounted(() => {
-  // Auto-start the game when component mounts
-  initializeGame();
+// Local reactive data for UI
+const setupChips = ref(1000);
+const setupTarget = ref(2000);
+const betAmount = ref(10);
+
+// Computed properties for validation
+const isValidBet = computed(() => {
+  return betAmount.value >= minBet.value &&
+         betAmount.value <= chips.value &&
+         betAmount.value <= maxBet.value;
 });
+
+const isValidSetup = computed(() => {
+  return setupChips.value >= 50 &&
+         setupTarget.value >= setupChips.value * 1.5 &&
+         setupTarget.value <= 50000;
+});
+
+// Methods
+function startGame() {
+  if (isValidSetup.value) {
+    setStartingChips(setupChips.value, setupTarget.value);
+  }
+}
+
+function submitBet() {
+  if (isValidBet.value) {
+    placeBet(betAmount.value);
+  }
+}
+
+function updateTargetMin() {
+  if (setupTarget.value < setupChips.value * 1.5) {
+    setupTarget.value = setupChips.value * 2;
+  }
+}
 </script>
 
 <style scoped>
@@ -221,15 +361,195 @@ onMounted(() => {
   color: #ffeb3b;
 }
 
-.game-status {
+/* Setup Screen Styles */
+.setup-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.setup-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.setup-card h2 {
+  margin-bottom: 30px;
+  font-size: 2rem;
+}
+
+.chip-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.setup-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.setup-group label {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.chip-input {
+  padding: 12px 20px;
+  font-size: 1.2rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-align: center;
+  width: 200px;
+}
+
+.preset-section {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.preset-group {
+  text-align: center;
+}
+
+.preset-group h4 {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.preset-chips {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-preset {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-preset:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Betting Screen Styles */
+.betting-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.chip-display {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.chip-display h2 {
+  margin-bottom: 30px;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.bet-input {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.bet-input-field {
+  padding: 12px 20px;
+  font-size: 1.2rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-align: center;
+  width: 150px;
+}
+
+.preset-bets {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-preset-all {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+}
+
+.btn-preset-all:hover {
+  background: #d32f2f;
+  transform: translateY(-1px);
+}
+
+/* Game Info Bar */
+.game-info {
   display: flex;
   justify-content: center;
   gap: 30px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
-  text-align: center;
-  padding: 20px;
+}
+
+.info-item {
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  padding: 10px 20px;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.soft-hand-indicator {
+  margin-top: 10px;
+  background: rgba(255, 193, 7, 0.8);
+  color: #333;
+  padding: 5px 15px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.game-over-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .status-item {

@@ -2,7 +2,7 @@ import { ref, computed } from 'vue';
 import type { Card } from '../types/Card';
 import { createDeck, shuffleDeck, calculateHandValue } from '../utils/deck';
 
-export type GamePhase = 'betting' | 'dealing' | 'player-turn' | 'dealer-turn' | 'game-over';
+export type GamePhase = 'setup' | 'betting' | 'dealing' | 'player-turn' | 'dealer-turn' | 'game-over' | 'victory';
 
 export interface GameState {
   deck: Card[];
@@ -11,14 +11,22 @@ export interface GameState {
   phase: GamePhase;
   gameMessage: string;
   canSplit: boolean;
+  chips: number;
+  currentBet: number;
+  startingChips: number;
+  targetChips: number;
 }
 
 export function useBlackjack() {
   const deck = ref<Card[]>([]);
   const playerHand = ref<Card[]>([]);
   const dealerHand = ref<Card[]>([]);
-  const phase = ref<GamePhase>('betting');
-  const gameMessage = ref<string>('Welcome to Blackjack!');
+  const phase = ref<GamePhase>('setup');
+  const gameMessage = ref<string>('Welcome to Blackjack! Set your starting chips and win goal to begin.');
+  const chips = ref<number>(1000);
+  const currentBet = ref<number>(0);
+  const startingChips = ref<number>(1000);
+  const targetChips = ref<number>(2000);
 
   const playerHandValue = computed(() => calculateHandValue(playerHand.value));
   const dealerHandValue = computed(() => calculateHandValue(dealerHand.value));
@@ -37,8 +45,42 @@ export function useBlackjack() {
     return phase.value === 'player-turn';
   });
 
+  const canBet = computed(() => {
+    return phase.value === 'betting' && chips.value > 0;
+  });
+
+  const maxBet = computed(() => {
+    return Math.min(chips.value, 500); // Set a max bet limit
+  });
+
+  const minBet = computed(() => {
+    return Math.min(10, chips.value); // Minimum bet of 10 or remaining chips
+  });
+
   const isPlayerBust = computed(() => playerHandValue.value.value > 21);
   const isDealerBust = computed(() => dealerHandValue.value.value > 21);
+
+  function setStartingChips(amount: number, target: number) {
+    startingChips.value = amount;
+    targetChips.value = target;
+    chips.value = amount;
+    phase.value = 'betting';
+    gameMessage.value = `You have ${chips.value} chips. Goal: ${target}. Place your bet to start!`;
+  }
+
+  function placeBet(betAmount: number) {
+    if (betAmount > chips.value || betAmount < minBet.value) {
+      gameMessage.value = `Invalid bet! Min: ${minBet.value}, Max: ${chips.value}`;
+      return false;
+    }
+
+    currentBet.value = betAmount;
+    chips.value -= betAmount;
+    gameMessage.value = `Bet placed: ${betAmount} chips. Starting new hand...`;
+
+    setTimeout(() => initializeGame(), 1000);
+    return true;
+  }
 
   function initializeGame() {
     deck.value = shuffleDeck(createDeck());
@@ -109,17 +151,47 @@ export function useBlackjack() {
 
   function determineWinner() {
     phase.value = 'game-over';
+    let winnings = 0;
+
+    // Check for blackjack (21 with 2 cards)
+    const playerBlackjack = playerHandValue.value.value === 21 && playerHand.value.length === 2;
+    const dealerBlackjack = dealerHandValue.value.value === 21 && dealerHand.value.length === 2;
 
     if (isPlayerBust.value) {
-      gameMessage.value = 'Dealer wins! You went bust.';
+      gameMessage.value = `Dealer wins! You went bust. Lost ${currentBet.value} chips.`;
+      // Player already lost chips when betting, no change needed
     } else if (isDealerBust.value) {
-      gameMessage.value = 'You win! Dealer went bust.';
+      winnings = currentBet.value * 2; // Get bet back + equal amount
+      gameMessage.value = `You win! Dealer went bust. Won ${currentBet.value} chips!`;
+    } else if (playerBlackjack && !dealerBlackjack) {
+      winnings = Math.floor(currentBet.value * 2.5); // Blackjack pays 3:2
+      gameMessage.value = `Blackjack! Won ${winnings - currentBet.value} chips!`;
+    } else if (dealerBlackjack && !playerBlackjack) {
+      gameMessage.value = `Dealer has blackjack! Lost ${currentBet.value} chips.`;
     } else if (playerHandValue.value.value > dealerHandValue.value.value) {
-      gameMessage.value = 'You win!';
+      winnings = currentBet.value * 2;
+      gameMessage.value = `You win! Won ${currentBet.value} chips!`;
     } else if (dealerHandValue.value.value > playerHandValue.value.value) {
-      gameMessage.value = 'Dealer wins!';
+      gameMessage.value = `Dealer wins! Lost ${currentBet.value} chips.`;
     } else {
-      gameMessage.value = 'It\'s a tie!';
+      winnings = currentBet.value; // Push - return bet
+      gameMessage.value = `It's a tie! Your bet of ${currentBet.value} chips is returned.`;
+    }
+
+    chips.value += winnings;
+
+    // Check for victory condition first
+    if (chips.value >= targetChips.value) {
+      phase.value = 'victory';
+      gameMessage.value = `🎉 CONGRATULATIONS! You reached your goal of ${targetChips.value} chips! You won with ${chips.value} chips!`;
+      return;
+    }
+
+    // Check if player is out of money
+    if (chips.value < minBet.value) {
+      gameMessage.value += ` Game Over! You're out of chips.`;
+    } else {
+      gameMessage.value += ` Chips: ${chips.value} / Goal: ${targetChips.value}`;
     }
   }
 
@@ -131,7 +203,23 @@ export function useBlackjack() {
   }
 
   function newGame() {
-    initializeGame();
+    if (chips.value >= minBet.value) {
+      currentBet.value = 0;
+      phase.value = 'betting';
+      gameMessage.value = `You have ${chips.value} chips. Goal: ${targetChips.value}. Place your bet for the next hand!`;
+    } else {
+      phase.value = 'setup';
+      gameMessage.value = 'Game Over! You ran out of chips. Set your starting chips and goal to play again.';
+    }
+  }
+
+  function restartGame() {
+    phase.value = 'setup';
+    chips.value = 1000;
+    currentBet.value = 0;
+    startingChips.value = 1000;
+    targetChips.value = 2000;
+    gameMessage.value = 'Welcome to Blackjack! Set your starting chips and win goal to begin.';
   }
 
   return {
@@ -141,6 +229,10 @@ export function useBlackjack() {
     dealerHand,
     phase,
     gameMessage,
+    chips,
+    currentBet,
+    startingChips,
+    targetChips,
 
     // Computed
     playerHandValue,
@@ -148,14 +240,20 @@ export function useBlackjack() {
     canSplit,
     canHit,
     canStand,
+    canBet,
+    maxBet,
+    minBet,
     isPlayerBust,
     isDealerBust,
 
     // Actions
+    setStartingChips,
+    placeBet,
     initializeGame,
     hit,
     stand,
     split,
-    newGame
+    newGame,
+    restartGame
   };
 }
