@@ -62,7 +62,7 @@
     </div>
 
     <!-- Victory Screen -->
-    <div v-if="phase === 'victory'" class="victory-screen">
+    <!-- <div v-if="phase === 'victory'" class="victory-screen">
       <div class="victory-card">
         <h2>🎉 CONGRATULATIONS! 🎉</h2>
         <div class="victory-message">
@@ -74,7 +74,7 @@
           Play Again
         </button>
       </div>
-    </div>
+    </div> -->
 
     <!-- Betting Screen -->
     <div v-if="phase === 'betting'" class="betting-screen">
@@ -182,6 +182,10 @@
           Restart ?
         </button>
       </div>
+
+      <button v-if="phase == 'victory'" @click="restartGame" class="btn btn-victory">
+          Play Again
+      </button>
     </div>
   </div>
 </template>
