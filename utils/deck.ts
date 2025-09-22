@@ -11,29 +11,10 @@ export function createDeck(): Card[] {
       deck.push({
         suit,
         value,
+        image: `dist/assets/${suit}_${value}.png`
         // Only include image path if you have actual card images
         // If no images are available, omit this property to use suit/value fallback
         // image: `${value}-${suit}.png`
-      });
-    }
-  }
-
-  return deck;
-}
-
-// Alternative function to create deck with image paths (for when you have card images)
-export function createDeckWithImages(): Card[] {
-  const suits: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
-  const values: CardValue[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-
-  const deck: Card[] = [];
-
-  for (const suit of suits) {
-    for (const value of values) {
-      deck.push({
-        suit,
-        value,
-        image: `assets/cards/${value}-${suit}.png`
       });
     }
   }

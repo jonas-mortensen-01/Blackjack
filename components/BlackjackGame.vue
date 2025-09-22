@@ -564,6 +564,11 @@ function updateTargetMin() {
   font-weight: bold;
 }
 
+.btn-victory:hover {
+  background: rgba(255, 255, 255, 0.53);
+  transform: translateY(-1px);
+}
+
 .game-over-controls {
   display: flex;
   justify-content: center;

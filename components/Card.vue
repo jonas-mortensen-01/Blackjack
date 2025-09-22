@@ -7,7 +7,6 @@
         :src="image"
         :alt="`${value} of ${suit}`"
         class="card-image"
-        @error="handleImageError"
         @load="handleImageLoad"
       />
 
@@ -78,9 +77,9 @@ function handleImageLoad() {
 
 <style scoped>
 .card {
-  width: 80px;
+  width: 86px;
   height: 120px;
-   border: 2px solid #333;
+  border: 2px solid #333;
   border-radius: 8px;
   background: white;
   position: relative;
