@@ -173,8 +173,8 @@ function handleImageLoad() {
 }
 
 .card-back-pattern {
-  width: 60%;
-  height: 60%;
+  width: 90%;
+  height: 90%;
   background: repeating-linear-gradient(
     45deg,
     rgba(255, 255, 255, 0.1),
