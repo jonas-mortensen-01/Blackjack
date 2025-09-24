@@ -147,7 +147,7 @@
           Split
         </button>
         <button @click="betInsurance()" :disabled="!insuranceAvailable" class="btn btn-secondary btn-with-input">
-          Insurance <input id="betAmount" v-model.number="initialInsuranceBet" min="1" :max="currentBet / 2" type="number" @click.stop class="insurance-input-field"></input>
+          Insurance <input id="betAmount" v-model.number="initialInsuranceBet" min="1" :max="maxValidInsurance" @blur="enforceInsuranceBetLimits" type="number" @click.stop class="insurance-input-field"></input>
         </button>
       </div>
 
@@ -218,13 +218,20 @@ const setupChips = ref(1000);
 const setupTarget = ref(2000);
 const setupNumDeck = ref(1);
 const betAmount = ref(10);
-let initialInsuranceBet = ref(0);
+let initialInsuranceBet = ref(1);
 
 function betInsurance() {
-  placeInsurance(initialInsuranceBet.value);
+  const allowedInsurance = initialInsuranceBet.value <= currentBet.value / 2 && initialInsuranceBet.value > 0;
+  if (allowedInsurance) {
+    placeInsurance(initialInsuranceBet.value);
+  }
 }
 
 // Computed properties for validation
+const maxValidInsurance = computed(() => {
+  return currentBet.value / 2;
+});
+
 const isValidBet = computed(() => {
   return betAmount.value >= minBet.value &&
     betAmount.value <= chips.value &&
@@ -248,6 +255,11 @@ function submitBet() {
   if (isValidBet.value) {
     placeBet(betAmount.value);
   }
+}
+
+function enforceInsuranceBetLimits() {
+  if (initialInsuranceBet.value > maxValidInsurance.value) initialInsuranceBet.value = maxValidInsurance.value
+  else if (initialInsuranceBet.value < 1) initialInsuranceBet.value = 1;
 }
 
 function updateTargetMin() {
