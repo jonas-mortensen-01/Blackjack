@@ -220,6 +220,7 @@ const setupNumDeck = ref(1);
 const betAmount = ref(10);
 let initialInsuranceBet = ref(1);
 
+// Checks if the attempted bet is valid and places it
 function betInsurance() {
   const allowedInsurance = initialInsuranceBet.value <= currentBet.value / 2 && initialInsuranceBet.value > 0;
   if (allowedInsurance) {
@@ -257,6 +258,7 @@ function submitBet() {
   }
 }
 
+// Prevents illegal insurance bets 
 function enforceInsuranceBetLimits() {
   if (initialInsuranceBet.value > maxValidInsurance.value) initialInsuranceBet.value = maxValidInsurance.value
   else if (initialInsuranceBet.value < 1) initialInsuranceBet.value = 1;

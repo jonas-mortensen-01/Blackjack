@@ -404,8 +404,6 @@ export function useBlackjack() {
   // Check if insurance is available
   function checkInsurance() {
     const value = dealerUpCard.value?.value;
-    console.log("value", value);
-    console.log("dealer card", dealerUpCard);
     insuranceAvailable.value = value === 'A' || ['10', 'J', 'Q', 'K'].includes(value);
   };
 
