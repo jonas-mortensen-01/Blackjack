@@ -11,7 +11,7 @@
         <h2>Welcome to Blackjack!</h2>
         <div class="chip-setup">
           <div class="setup-group">
-            <label for="startingChips" class="startingChipsLabel">Starting Chips<div class="info-bubble">?<div class="info-bubble-menu" style="max-width: 50%">Target chips to achieve before winning the game</div></div>:</label>
+            <label for="startingChips" class="startingChipsLabel">Starting Chips<div class="info-bubble">?<div class="info-bubble-menu" style="max-width: 50%">The amount of chips you wish to start with</div></div>:</label>
             <input
               id="startingChips"
               v-model.number="setupChips"
