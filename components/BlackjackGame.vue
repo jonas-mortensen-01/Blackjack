@@ -204,8 +204,6 @@ const {
   gameMessage,
   chips,
   currentBet,
-  startingChips,
-  targetChips,
   hasDoubledDown,
 
   // Computed
@@ -214,7 +212,6 @@ const {
   canSplit,
   canHit,
   canStand,
-  canBet,
   maxBet,
   minBet,
 
