@@ -324,13 +324,15 @@ export function useBlackjack() {
     // Resolves insurance payout if it has any and how much
     const insuranceHasPayout = resolveInsurance(dealerBlackjack);
 
-    if (insuranceHasPayout == true) {
-      gameMessage.value += `Insurance payout! Won ${insuranceBet.value * 2} chips. 
-      `;
-    }
-    else {
-      gameMessage.value += `Insurance lost! lost ${insuranceBet.value} chips. 
-      `;
+    if (insuranceBet.value > 0) {
+      if (insuranceHasPayout == true) {
+        gameMessage.value += `Insurance payout! Won ${insuranceBet.value * 2} chips. 
+        `;
+      }
+      else {
+        gameMessage.value += `Insurance lost! lost ${insuranceBet.value} chips. 
+        `;
+      }
     }
 
     // Reset insurance state
