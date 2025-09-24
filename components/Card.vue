@@ -1,16 +1,17 @@
 <template>
   <div class="card" :class="{ 'face-down': !isVisible || isPlaceholderCard }">
     <div v-if="isVisible && !isPlaceholderCard" class="card-content">
-      <!-- Image Display (if image is provided and loads successfully) -->
+      <!-- If the image loads successfully for any individual card this will display it -->
       <img
         v-if="image && !imageLoadError"
         :src="image"
         :alt="`${value} of ${suit}`"
         class="card-image"
+        @error="handleImageError"
         @load="handleImageLoad"
       />
 
-      <!-- Fallback to suit/value display -->
+      <!-- If any image for a card fails this hard coded display will be used instead -->
       <div v-if="!image || imageLoadError" class="card-suit-value-display">
         <div class="card-corner top-left">
           <div class="card-value">{{ value }}</div>
@@ -47,6 +48,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const imageLoadError = ref(false);
 
+// Computes the suit for the frontfaces that are displayed with lower detail
 const suitSymbol = computed(() => {
   switch (props.suit) {
     case 'hearts': return '♥';
@@ -58,10 +60,12 @@ const suitSymbol = computed(() => {
   }
 });
 
+// Computes the color for the frontfaces that are displayed with lower detail
 const suitColor = computed(() => {
   return props.suit === 'hearts' || props.suit === 'diamonds' ? 'red' : 'black';
 });
 
+// Returns true if card has no value meaning it is displayed as face-down
 const isPlaceholderCard = computed(() => {
   return props.suit === 'placeholder' || props.value === 'hidden';
 });

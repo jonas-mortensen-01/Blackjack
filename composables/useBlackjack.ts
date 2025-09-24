@@ -2,6 +2,7 @@ import { ref, computed } from 'vue';
 import type { Card } from '../types/Card';
 import { createDeck, shuffleDeck, calculateHandValue } from '../utils/deck';
 
+// Enum to represent the phases of the game
 export type GamePhase = 'setup' | 'betting' | 'dealing' | 'player-turn' | 'dealer-turn' | 'game-over' | 'victory' | 'out-of-chips';
 
 export interface GameState {
@@ -29,39 +30,48 @@ export function useBlackjack() {
   const targetChips = ref<number>(2000);
   const hasDoubledDown = ref(false);
 
+  // Initial hand setup
   const playerHandValue = computed(() => calculateHandValue(playerHand.value));
   const dealerHandValue = computed(() => calculateHandValue(dealerHand.value));
 
-
+  // Gets the players hand and determines if there are exactly 2 cards in their hand 
+  // and if they have the same value it will allow for the "split" game action
   const canSplit = computed(() => {
     return phase.value === 'player-turn' &&
-           playerHand.value.length === 2 &&
-           playerHand.value[0].value === playerHand.value[1].value;
+      playerHand.value.length === 2 &&
+      playerHand.value[0].value === playerHand.value[1].value;
   });
 
+  // If the player has a hand with value less than 21 the player can hit
   const canHit = computed(() => {
     return phase.value === 'player-turn' && playerHandValue.value.value < 21;
   });
 
+  // If the player has their turn they can end it
   const canStand = computed(() => {
     return phase.value === 'player-turn';
   });
 
+  // If the phase is betting and the player has any chips left to bet with
   const canBet = computed(() => {
     return phase.value === 'betting' && chips.value > 0;
   });
 
+  // Sets a maxBet value
   const maxBet = computed(() => {
     return chips.value; // Set a max bet limit
   });
 
+  // Sets a minBet value based on the chips the player has left
   const minBet = computed(() => {
     return Math.min(10, chips.value); // Minimum bet of 10 or remaining chips
   });
 
+  // If any player is bust / hand value is over 21
   const isPlayerBust = computed(() => playerHandValue.value.value > 21);
   const isDealerBust = computed(() => dealerHandValue.value.value > 21);
 
+  // Initializes the starting values for chips target chips and starts the betting
   function setStartingChips(amount: number, target: number) {
     startingChips.value = amount;
     targetChips.value = target;
@@ -70,6 +80,8 @@ export function useBlackjack() {
     gameMessage.value = `You have ${chips.value} chips. Goal: ${target}. Place your bet to start!`;
   }
 
+  // Bet an amount provided in the parameter if the amount is larger than the minBet value 
+  // and smaller than the amount of chips the player has
   function placeBet(betAmount: number) {
     if (betAmount > chips.value || betAmount < minBet.value) {
       gameMessage.value = `Invalid bet! Min: ${minBet.value}, Max: ${chips.value}`;
@@ -80,10 +92,12 @@ export function useBlackjack() {
     chips.value -= betAmount;
     gameMessage.value = `Bet placed: ${betAmount} chips. Starting new hand...`;
 
+    // If the bet is allowed this will start the game
     setTimeout(() => initializeGame(), 1000);
     return true;
   }
 
+  // Initializes the game by shuffling and dealing the cards
   function initializeGame() {
     deck.value = shuffleDeck(createDeck());
     playerHand.value = [];
@@ -94,12 +108,14 @@ export function useBlackjack() {
     setTimeout(() => dealInitialCards(), 500);
   }
 
+  // Takes the top card of the deck and returns it
   function dealCard(): Card | undefined {
     return deck.value.pop();
   }
 
+  // Initial dealing switching between player and dealer with feedback to the player
   function dealInitialCards() {
-    const ANIMATION_DURATION = 600; // Match CSS animation duration
+    const ANIMATION_DURATION = 600;
 
     // Deal cards with animation timing
     gameMessage.value = 'Dealing first card to player...';
@@ -115,9 +131,12 @@ export function useBlackjack() {
 
         setTimeout(() => {
           gameMessage.value = 'Dealing second card to dealer...';
-          // Deal placeholder card for dealer's face-down card
+
+          // Last card dealt to the dealer is face-down
           dealerHand.value.push({ suit: 'placeholder', value: 'hidden' });
 
+          // Instead of an instant win on player drawing blackjack 
+          // the game will allow them to press stand to provide more interaction with the game
           setTimeout(() => {
             phase.value = 'player-turn';
 
@@ -132,10 +151,12 @@ export function useBlackjack() {
     }, ANIMATION_DURATION);
   }
 
+  // If the player can hit it will deal them a card if one is present on the deck
+  // and determines afterwards if the player is bust and has lost 
   function hit() {
     if (!canHit.value) return;
 
-    const ANIMATION_DURATION = 600; // Match CSS animation duration
+    const ANIMATION_DURATION = 600;
 
     gameMessage.value = 'Dealing card...';
     const card = dealCard();
@@ -143,7 +164,9 @@ export function useBlackjack() {
       playerHand.value.push(card);
     }
 
+    // After hit determine if the player has lost or has blackjack
     setTimeout(() => {
+      // If the playerhand is above 21 and they have no chips left to bet with
       if (isPlayerBust.value) {
         if (chips.value == 0) {
           phase.value = 'out-of-chips';
@@ -161,6 +184,7 @@ export function useBlackjack() {
     }, ANIMATION_DURATION);
   }
 
+  // Finds the placeholder card in the dealers hand and replaces it with and actual card
   function assignDealerHiddenCard() {
     // Find the placeholder card and replace it with a real card
     const placeholderIndex = dealerHand.value.findIndex(card => card.value === 'hidden');
@@ -172,6 +196,7 @@ export function useBlackjack() {
     }
   }
 
+  // If the player has their turn it will end and play the dealers turn
   function stand() {
     if (!canStand.value && phase.value !== 'player-turn') return;
 
@@ -184,42 +209,44 @@ export function useBlackjack() {
     setTimeout(() => playDealerTurn(), 1000);
   }
 
- function playDealerTurn() {
-  const ANIMATION_DURATION = 600; // Match CSS animation duration
+  // Plays the dealers turn
+  function playDealerTurn() {
+    const ANIMATION_DURATION = 600; // Match CSS animation duration
 
-  // ✅ If player is already bust, dealer wins immediately
-  if (playerHandValue.value.value > 21) {
-    gameMessage.value = `Player busts with ${playerHandValue.value.value}! Dealer wins automatically.`;
-    setTimeout(() => determineWinner(), ANIMATION_DURATION);
-    return;
-  }
-
-  const dealDealerCard = () => {
-    const dealerTotal = dealerHandValue.value.value;
-    const playerTotal = playerHandValue.value.value;
-
-    // If dealer has already beaten or tied the player (without busting)
-    if (dealerTotal >= playerTotal && dealerTotal <= 21) {
-      gameMessage.value = `Dealer stands with ${dealerTotal}.`;
+    // If the player is bust the dealer wins
+    if (playerHandValue.value.value > 21) {
+      gameMessage.value = `Player busts with ${playerHandValue.value.value}! Dealer wins automatically.`;
       setTimeout(() => determineWinner(), ANIMATION_DURATION);
       return;
     }
 
-    // If dealer is bust
-    if (dealerTotal > 21) {
-      gameMessage.value = `Dealer busts with ${dealerTotal}!`;
-      setTimeout(() => determineWinner(), ANIMATION_DURATION);
-      return;
-    }
+    // Deals cards to the dealer until they have beaten the player or gone bust
+    const dealDealerCard = () => {
+      const dealerTotal = dealerHandValue.value.value;
+      const playerTotal = playerHandValue.value.value;
 
-    // Otherwise, dealer hits
-    gameMessage.value = `Dealer hits (has ${dealerTotal})...`;
-    const card = dealCard();
-    if (card) {
-      dealerHand.value.push(card);
-    }
+      // If dealer has already beaten or tied the player (without busting)
+      if (dealerTotal >= playerTotal && dealerTotal <= 21) {
+        gameMessage.value = `Dealer stands with ${dealerTotal}.`;
+        setTimeout(() => determineWinner(), ANIMATION_DURATION);
+        return;
+      }
 
-    setTimeout(() => {
+      // If dealer is bust
+      if (dealerTotal > 21) {
+        gameMessage.value = `Dealer busts with ${dealerTotal}!`;
+        setTimeout(() => determineWinner(), ANIMATION_DURATION);
+        return;
+      }
+
+      // Otherwise, dealer hits
+      gameMessage.value = `Dealer hits (has ${dealerTotal})...`;
+      const card = dealCard();
+      if (card) {
+        dealerHand.value.push(card);
+      }
+
+      setTimeout(() => {
         dealDealerCard();
       }, ANIMATION_DURATION);
     };
@@ -227,9 +254,10 @@ export function useBlackjack() {
     dealDealerCard();
   }
 
+  // Allows for the doubleDown feature where a player can double their bet for one more card
   function doubleDown() {
-    if (chips.value >= currentBet.value)
-    {
+    // If the player has enough chips to double the currentBet
+    if (chips.value >= currentBet.value) {
       hasDoubledDown.value = true;
 
       const newCard = deck.value.pop();
@@ -237,11 +265,14 @@ export function useBlackjack() {
 
       chips.value -= currentBet.value;
       currentBet.value += currentBet.value;
-      
+
       stand();
     }
   }
 
+  // Determines a winner for the game
+  // If the player wins they get payout, if it is tied the player gets their bet back
+  // If the player has blackjack on 2 cards and dealer does not the player wins with a 3:2 payout
   function determineWinner() {
     phase.value = 'game-over';
     let winnings = 0;
@@ -273,14 +304,14 @@ export function useBlackjack() {
 
     chips.value += winnings;
 
-    // Check for victory condition first
+    // If the player has enough chips to reach the target
     if (chips.value >= targetChips.value) {
       phase.value = 'victory';
       gameMessage.value = `🎉 CONGRATULATIONS! You reached your goal of ${targetChips.value} chips! You won with ${chips.value} chips!`;
       return;
     }
 
-    // Check if player is out of money
+    // If player is out of money
     if (chips.value == 0) {
       phase.value = 'out-of-chips';
       gameMessage.value += ` Game Over! You're out of chips.`;
@@ -289,13 +320,15 @@ export function useBlackjack() {
     }
   }
 
+  // Split implementation / Not made yet 
   function split() {
-    // Basic split implementation - simplified for this demo
     if (!canSplit.value) return;
 
     gameMessage.value = 'Split not fully implemented in this demo';
   }
 
+  // Determines if the game can continue
+  // If the player has no chips the game ends
   function newGame() {
     if (chips.value >= minBet.value) {
       currentBet.value = 0;
@@ -308,6 +341,7 @@ export function useBlackjack() {
     }
   }
 
+  // Resets the game and goes back to setup to allow configuring it for a new game
   function restartGame() {
     phase.value = 'setup';
     chips.value = 1000;
