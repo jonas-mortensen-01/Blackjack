@@ -5,20 +5,22 @@ import type { Card, Suit, CardValue } from '../types/Card';
 // this will need conversion later for other operations.
 // An image is not needed here since the frontend functionality allows for missing assets
 // which will make it use an alternative hard coded card front with lower detail.
-export function createDeck(): Card[] {
+export function createDeck(numDecks: number): Card[] {
   const suits: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
   const values: CardValue[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
   const deck: Card[] = [];
 
   // For each suit create a card of each value
-  for (const suit of suits) {
-    for (const value of values) {
-      deck.push({
-        suit,
-        value,
-        image: `dist/assets/${suit}_${value}.png`
-      });
+  for (let d = 0; d < numDecks; d++) {
+    for (const suit of suits) {
+      for (const value of values) {
+        deck.push({
+          suit,
+          value,
+          image: `dist/assets/${suit}_${value}.png`
+        });
+      }
     }
   }
 

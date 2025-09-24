@@ -11,7 +11,7 @@
         <h2>Welcome to Blackjack!</h2>
         <div class="chip-setup">
           <div class="setup-group">
-            <label for="startingChips">Starting Chips:</label>
+            <label for="startingChips" class="startingChipsLabel">Starting Chips<div class="info-bubble">?<div class="info-bubble-menu" style="max-width: 50%">Target chips to achieve before winning the game</div></div>:</label>
             <input
               id="startingChips"
               v-model.number="setupChips"
@@ -23,7 +23,7 @@
             />
           </div>
           <div class="setup-group">
-            <label for="targetChips">Win Goal:</label>
+            <label for="targetChips" class="targetChipsLabel">Win Goal<div class="info-bubble">?<div class="info-bubble-menu" style="max-width: 50%">Target chips to achieve before winning the game</div></div>:</label>
             <input
               id="targetChips"
               v-model.number="setupTarget"
@@ -32,6 +32,20 @@
               max="50000"
               step="100"
               class="chip-input"
+            />
+          </div>
+          <div class="setup-group">
+            <label for="numDeck" class="numDeckLabel">
+              How many decks <div class="info-bubble">?<div class="info-bubble-menu" style="max-width: 50%">This will increase the amount of decks played with making it harder to count cards</div></div>:
+            </label>
+            <input
+              id="numDeck"
+              v-model.number="setupNumDeck"
+              type="number"
+              min="1"
+              max="10"
+              step="1"
+              class="num-deck-input"
             />
           </div>
           <button @click="startGame" class="btn btn-primary" :disabled="!isValidSetup">
@@ -216,7 +230,7 @@ const {
   minBet,
 
   // Actions
-  setStartingChips,
+  startSetup,
   placeBet,
   hit,
   stand,
@@ -229,6 +243,7 @@ const {
 // Local reactive data for UI
 const setupChips = ref(1000);
 const setupTarget = ref(2000);
+const setupNumDeck = ref(1);
 const betAmount = ref(10);
 
 // Computed properties for validation
@@ -247,7 +262,7 @@ const isValidSetup = computed(() => {
 // Methods
 function startGame() {
   if (isValidSetup.value) {
-    setStartingChips(setupChips.value, setupTarget.value);
+    startSetup(setupChips.value, setupTarget.value, setupNumDeck.value);
   }
 }
 
@@ -265,6 +280,34 @@ function updateTargetMin() {
 </script>
 
 <style scoped>
+.info-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.info-bubble:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.info-bubble-menu {
+  display: none;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 10px;
+  position: absolute;
+  transform: translateY(-100%);
+}
+
+.info-bubble:hover .info-bubble-menu {
+  display: block;
+  cursor: pointer;
+}
+
 .blackjack-game {
   max-width: 800px;
   margin: 0 auto;
@@ -419,7 +462,7 @@ function updateTargetMin() {
   font-weight: bold;
 }
 
-.chip-input {
+.chip-input, .num-deck-input {
   padding: 12px 20px;
   font-size: 1.2rem;
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -575,6 +618,11 @@ function updateTargetMin() {
 
 .status-item {
   font-size: 1rem;
+}
+
+.numDeckLabel, .targetChipsLabel, .startingChipsLabel {
+  display: flex; 
+  height: 20px;
 }
 
 /* Card animations */

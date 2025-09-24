@@ -29,6 +29,10 @@ export function useBlackjack() {
   const startingChips = ref<number>(1000);
   const targetChips = ref<number>(2000);
   const hasDoubledDown = ref(false);
+  const cutPercent = ref<number>(.90);
+  const cutIndex = ref<number>(0);
+  const numDeck = ref<number>(1);
+  const shuffleAfterRound = ref<boolean>(true);
 
   // Initial hand setup
   const playerHandValue = computed(() => calculateHandValue(playerHand.value));
@@ -72,9 +76,10 @@ export function useBlackjack() {
   const isDealerBust = computed(() => dealerHandValue.value.value > 21);
 
   // Initializes the starting values for chips target chips and starts the betting
-  function setStartingChips(amount: number, target: number) {
+  function startSetup(amount: number, target: number, deckNumber: number = 1) {
     startingChips.value = amount;
     targetChips.value = target;
+    numDeck.value = deckNumber;
     chips.value = amount;
     phase.value = 'betting';
     gameMessage.value = `You have ${chips.value} chips. Goal: ${target}. Place your bet to start!`;
@@ -99,7 +104,12 @@ export function useBlackjack() {
 
   // Initializes the game by shuffling and dealing the cards
   function initializeGame() {
-    deck.value = shuffleDeck(createDeck());
+    if (shuffleAfterRound.value == true) {
+      deck.value = shuffleDeck(createDeck(numDeck.value));
+      cutIndex.value = Math.floor(deck.value.length * cutPercent.value);
+      shuffleAfterRound.value = false;
+    }
+
     playerHand.value = [];
     dealerHand.value = [];
     phase.value = 'dealing';
@@ -318,6 +328,11 @@ export function useBlackjack() {
     } else {
       gameMessage.value += ` Chips: ${chips.value} / Goal: ${targetChips.value}`;
     }
+
+    if (deck.value.length <= cutIndex.value) {
+      shuffleAfterRound.value = true;
+      gameMessage.value += `Cut card reached! Reshuffling deck after round`;
+    }
   }
 
   // Split implementation / Not made yet 
@@ -377,7 +392,7 @@ export function useBlackjack() {
     isDealerBust,
 
     // Actions
-    setStartingChips,
+    startSetup,
     placeBet,
     initializeGame,
     hit,
