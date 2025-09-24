@@ -33,10 +33,14 @@ export function useBlackjack() {
   const cutIndex = ref<number>(0);
   const numDeck = ref<number>(1);
   const shuffleAfterRound = ref<boolean>(true);
+  const insuranceBet = ref<number>(0);
+  const insuranceAvailable = ref(false);
 
+  // Computed values
   // Initial hand setup
   const playerHandValue = computed(() => calculateHandValue(playerHand.value));
   const dealerHandValue = computed(() => calculateHandValue(dealerHand.value));
+  const dealerUpCard = computed(() => dealerHand.value[0]);
 
   // Gets the players hand and determines if there are exactly 2 cards in their hand 
   // and if they have the same value it will allow for the "split" game action
@@ -155,10 +159,31 @@ export function useBlackjack() {
             } else {
               gameMessage.value = 'Your turn! Hit, Stand, or Split if possible.';
             }
+
+            checkInsurance();
           }, ANIMATION_DURATION);
         }, ANIMATION_DURATION);
       }, ANIMATION_DURATION);
     }, ANIMATION_DURATION);
+  }
+
+  function placeInsurance() {
+    if (!insuranceAvailable.value) return;
+
+    const insurance = currentBet.value / 2;
+    chips.value -= insurance;
+    insuranceBet.value = insurance;
+
+    stand();
+  }
+
+  function resolveInsurance(dealerHasBlackjack: boolean): boolean {
+    if (dealerHasBlackjack) {
+      // player wins 2:1 on insurance
+      chips.value += insuranceBet.value * 2;
+    }
+
+    return dealerHasBlackjack;
   }
 
   // If the player can hit it will deal them a card if one is present on the deck
@@ -237,20 +262,23 @@ export function useBlackjack() {
 
       // If dealer has already beaten or tied the player (without busting)
       if (dealerTotal >= playerTotal && dealerTotal <= 21) {
-        gameMessage.value = `Dealer stands with ${dealerTotal}.`;
+        gameMessage.value = `Dealer stands with ${dealerTotal}. 
+        `;
         setTimeout(() => determineWinner(), ANIMATION_DURATION);
         return;
       }
 
       // If dealer is bust
       if (dealerTotal > 21) {
-        gameMessage.value = `Dealer busts with ${dealerTotal}!`;
+        gameMessage.value = `Dealer busts with ${dealerTotal}! 
+        `;
         setTimeout(() => determineWinner(), ANIMATION_DURATION);
         return;
       }
 
       // Otherwise, dealer hits
-      gameMessage.value = `Dealer hits (has ${dealerTotal})...`;
+      gameMessage.value = `Dealer hits (has ${dealerTotal})... 
+      `;
       const card = dealCard();
       if (card) {
         dealerHand.value.push(card);
@@ -291,25 +319,47 @@ export function useBlackjack() {
     const playerBlackjack = playerHandValue.value.value === 21 && playerHand.value.length === 2;
     const dealerBlackjack = dealerHandValue.value.value === 21 && dealerHand.value.length === 2;
 
+    const insuranceHasPayout = resolveInsurance(dealerBlackjack);
+
+    if (insuranceHasPayout == true) {
+      gameMessage.value += `Insurance payout! Won ${insuranceBet.value * 2} chips. 
+      `;
+    }
+    else {
+      gameMessage.value += `Insurance lost! lost ${insuranceBet.value} chips. 
+      `;
+    }
+
+    // Reset insurance state
+    insuranceBet.value = 0;
+    insuranceAvailable.value = false;
+
     if (isPlayerBust.value) {
-      gameMessage.value = `Dealer wins! You went bust. Lost ${currentBet.value} chips.`;
+      gameMessage.value += `Dealer wins! You went bust. Lost ${currentBet.value} chips. 
+      `;
       // Player already lost chips when betting, no change needed
     } else if (isDealerBust.value) {
       winnings = currentBet.value * 2; // Get bet back + equal amount
-      gameMessage.value = `You win! Dealer went bust. Won ${currentBet.value} chips!`;
+      gameMessage.value += `You win! Dealer went bust. Won ${currentBet.value} chips. 
+      `;
     } else if (playerBlackjack && !dealerBlackjack) {
       winnings = Math.floor(currentBet.value * 2.5); // Blackjack pays 3:2
-      gameMessage.value = `Blackjack! Won ${winnings - currentBet.value} chips!`;
+      gameMessage.value += `Blackjack! Won ${winnings - currentBet.value} chips. 
+      `;
     } else if (dealerBlackjack && !playerBlackjack) {
-      gameMessage.value = `Dealer has blackjack! Lost ${currentBet.value} chips.`;
+      gameMessage.value += `Dealer has blackjack! Lost ${currentBet.value} chips. 
+      `;
     } else if (playerHandValue.value.value > dealerHandValue.value.value) {
       winnings = currentBet.value * 2;
-      gameMessage.value = `You win! Won ${currentBet.value} chips!`;
+      gameMessage.value += `You win! Won ${currentBet.value} chips. 
+      `;
     } else if (dealerHandValue.value.value > playerHandValue.value.value) {
-      gameMessage.value = `Dealer wins! Lost ${currentBet.value} chips.`;
+      gameMessage.value += `Dealer wins! Lost ${currentBet.value} chips. 
+      `;
     } else {
       winnings = currentBet.value; // Push - return bet
-      gameMessage.value = `It's a tie! Your bet of ${currentBet.value} chips is returned.`;
+      gameMessage.value += `It's a tie! Your bet of ${currentBet.value} chips is returned. 
+      `;
     }
 
     chips.value += winnings;
@@ -317,21 +367,25 @@ export function useBlackjack() {
     // If the player has enough chips to reach the target
     if (chips.value >= targetChips.value) {
       phase.value = 'victory';
-      gameMessage.value = `🎉 CONGRATULATIONS! You reached your goal of ${targetChips.value} chips! You won with ${chips.value} chips!`;
+      gameMessage.value = `🎉 CONGRATULATIONS! You reached your goal of ${targetChips.value} chips! You won with ${chips.value} chips! 
+      `;
       return;
     }
 
     // If player is out of money
     if (chips.value == 0) {
       phase.value = 'out-of-chips';
-      gameMessage.value += ` Game Over! You're out of chips.`;
+      gameMessage.value += ` Game Over! You're out of chips. 
+      `;
     } else {
-      gameMessage.value += ` Chips: ${chips.value} / Goal: ${targetChips.value}`;
+      gameMessage.value += ` Chips: ${chips.value} / Goal: ${targetChips.value}. 
+      `;
     }
 
     if (deck.value.length <= cutIndex.value) {
       shuffleAfterRound.value = true;
-      gameMessage.value += `Cut card reached! Reshuffling deck after round`;
+      gameMessage.value += `Cut card reached! Reshuffling deck after round end. 
+      `;
     }
   }
 
@@ -341,6 +395,14 @@ export function useBlackjack() {
 
     gameMessage.value = 'Split not fully implemented in this demo';
   }
+
+  // Check if insurance is available
+  function checkInsurance() {
+    const value = dealerUpCard.value?.value;
+    console.log("value", value);
+    console.log("dealer card", dealerUpCard);
+    insuranceAvailable.value = value === 'A' || ['10', 'J', 'Q', 'K'].includes(value);
+  };
 
   // Determines if the game can continue
   // If the player has no chips the game ends
@@ -378,8 +440,11 @@ export function useBlackjack() {
     startingChips,
     targetChips,
     hasDoubledDown,
+    insuranceAvailable,
+    insuranceBet,
 
     // Computed
+    dealerUpCard,
     playerHandValue,
     dealerHandValue,
     canSplit,
@@ -401,6 +466,7 @@ export function useBlackjack() {
     newGame,
     restartGame,
     assignDealerHiddenCard,
-    doubleDown
+    doubleDown,
+    placeInsurance
   };
 }

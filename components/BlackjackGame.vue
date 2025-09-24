@@ -123,6 +123,7 @@
       <div class="game-info">
         <div class="info-item">💰 Chips: {{ chips }}</div>
         <div class="info-item">🎯 Bet: {{ currentBet }}</div>
+        <div class="info-item" v-if="insuranceBet > 0"> Insurance: {{ insuranceBet }}</div>
         <div class="info-item">🃏 Cards: {{ deck.length }}</div>
       </div>
 
@@ -179,6 +180,9 @@
         <button @click="split" :disabled="!canSplit" class="btn btn-secondary">
           Split
         </button>
+        <button @click="placeInsurance" :disabled="!insuranceAvailable" class="btn btn-secondary">
+          Insurance
+        </button>
       </div>
 
       <div v-if="phase === 'dealer-turn'" class="dealer-controls">
@@ -219,6 +223,8 @@ const {
   chips,
   currentBet,
   hasDoubledDown,
+  insuranceAvailable,
+  insuranceBet,
 
   // Computed
   playerHandValue,
@@ -237,7 +243,8 @@ const {
   split,
   newGame,
   restartGame,
-  doubleDown
+  doubleDown,
+  placeInsurance
 } = useBlackjack();
 
 // Local reactive data for UI
