@@ -167,16 +167,18 @@ export function useBlackjack() {
     }, ANIMATION_DURATION);
   }
 
-  function placeInsurance() {
+  // Places an insurance bet
+  function placeInsurance(initialInsuranceBet: number) {
     if (!insuranceAvailable.value) return;
 
-    const insurance = currentBet.value / 2;
+    const insurance = initialInsuranceBet;
     chips.value -= insurance;
     insuranceBet.value = insurance;
 
     stand();
   }
 
+  // Checks if the insurance has won if so adds the winnings to the chip count
   function resolveInsurance(dealerHasBlackjack: boolean): boolean {
     if (dealerHasBlackjack) {
       // player wins 2:1 on insurance
@@ -319,6 +321,7 @@ export function useBlackjack() {
     const playerBlackjack = playerHandValue.value.value === 21 && playerHand.value.length === 2;
     const dealerBlackjack = dealerHandValue.value.value === 21 && dealerHand.value.length === 2;
 
+    // Resolves insurance payout if it has any and how much
     const insuranceHasPayout = resolveInsurance(dealerBlackjack);
 
     if (insuranceHasPayout == true) {

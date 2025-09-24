@@ -11,42 +11,27 @@
         <h2>Welcome to Blackjack!</h2>
         <div class="chip-setup">
           <div class="setup-group">
-            <label for="startingChips" class="startingChipsLabel">Starting Chips<div class="info-bubble">?<div class="info-bubble-menu" style="max-width: 50%">The amount of chips you wish to start with</div></div>:</label>
-            <input
-              id="startingChips"
-              v-model.number="setupChips"
-              type="number"
-              min="50"
-              max="10000"
-              step="50"
-              class="chip-input"
-            />
+            <label for="startingChips" class="startingChipsLabel">Starting Chips<div class="info-bubble">?<div
+                  class="info-bubble-menu" style="max-width: 50%">The amount of chips you wish to start with</div>
+              </div>:</label>
+            <input id="startingChips" v-model.number="setupChips" type="number" min="50" max="10000" step="50"
+              class="chip-input" />
           </div>
           <div class="setup-group">
-            <label for="targetChips" class="targetChipsLabel">Win Goal<div class="info-bubble">?<div class="info-bubble-menu" style="max-width: 50%">Target chips to achieve before winning the game</div></div>:</label>
-            <input
-              id="targetChips"
-              v-model.number="setupTarget"
-              type="number"
-              :min="setupChips * 1.5"
-              max="50000"
-              step="100"
-              class="chip-input"
-            />
+            <label for="targetChips" class="targetChipsLabel">Win Goal<div class="info-bubble">?<div
+                  class="info-bubble-menu" style="max-width: 50%">Target chips to achieve before winning the game</div>
+              </div>:</label>
+            <input id="targetChips" v-model.number="setupTarget" type="number" :min="setupChips * 1.5" max="50000"
+              step="100" class="chip-input" />
           </div>
           <div class="setup-group">
             <label for="numDeck" class="numDeckLabel">
-              How many decks <div class="info-bubble">?<div class="info-bubble-menu" style="max-width: 50%">This will increase the amount of decks played with making it harder to count cards</div></div>:
+              How many decks <div class="info-bubble">?<div class="info-bubble-menu" style="max-width: 50%">This will
+                  increase the amount of decks played with making it harder to count cards</div>
+              </div>:
             </label>
-            <input
-              id="numDeck"
-              v-model.number="setupNumDeck"
-              type="number"
-              min="1"
-              max="10"
-              step="1"
-              class="num-deck-input"
-            />
+            <input id="numDeck" v-model.number="setupNumDeck" type="number" min="1" max="10" step="1"
+              class="num-deck-input" />
           </div>
           <button @click="startGame" class="btn btn-primary" :disabled="!isValidSetup">
             Start Game
@@ -96,23 +81,18 @@
         <h2>💰 Chips: {{ chips }}</h2>
         <div class="bet-input">
           <label for="betAmount">Place Your Bet:</label>
-          <input
-            id="betAmount"
-            v-model.number="betAmount"
-            type="number"
-            :min="minBet"
-            :max="Math.min(chips, maxBet)"
-            step="5"
-            class="bet-input-field"
-          />
+          <input id="betAmount" v-model.number="betAmount" type="number" :min="minBet" :max="Math.min(chips, maxBet)"
+            step="5" class="bet-input-field" />
           <button @click="submitBet" class="btn btn-primary" :disabled="!isValidBet || currentBet > 0">
             Deal Cards
           </button>
         </div>
         <div class="preset-bets" v-if="chips > 0">
           <button :disabled="currentBet > 0" @click="betAmount = minBet" class="btn btn-preset">{{ minBet }}</button>
-          <button :disabled="currentBet > 0" @click="betAmount = Math.min(chips, 50)" class="btn btn-preset" v-if="chips >= 50">50</button>
-          <button :disabled="currentBet > 0" @click="betAmount = Math.min(chips, 100)" class="btn btn-preset" v-if="chips >= 100">100</button>
+          <button :disabled="currentBet > 0" @click="betAmount = Math.min(chips, 50)" class="btn btn-preset"
+            v-if="chips >= 50">50</button>
+          <button :disabled="currentBet > 0" @click="betAmount = Math.min(chips, 100)" class="btn btn-preset"
+            v-if="chips >= 100">100</button>
           <button :disabled="currentBet > 0" @click="betAmount = chips" class="btn btn-preset-all">All In</button>
         </div>
       </div>
@@ -131,15 +111,9 @@
       <div class="dealer-section">
         <h3>Dealer ({{ phase === 'player-turn' ? '?' : dealerHandValue.value }})</h3>
         <div class="hand">
-          <Card
-            v-for="(card, index) in dealerHand"
-            :key="`dealer-${index}-${card.suit}-${card.value}`"
-            :suit="card.suit"
-            :value="card.value"
-            :image="card.image || ''"
-            :is-visible="phase !== 'player-turn' || index === 0"
-            class="card-dealing"
-          />
+          <Card v-for="(card, index) in dealerHand" :key="`dealer-${index}-${card.suit}-${card.value}`"
+            :suit="card.suit" :value="card.value" :image="card.image || ''"
+            :is-visible="phase !== 'player-turn' || index === 0" class="card-dealing" />
         </div>
       </div>
 
@@ -147,15 +121,8 @@
       <div class="player-section">
         <h3>Player ({{ playerHandValue.value }})</h3>
         <div class="hand">
-          <Card
-            v-for="(card, index) in playerHand"
-            :key="`player-${index}-${card.suit}-${card.value}`"
-            :suit="card.suit"
-            :value="card.value"
-            :image="card.image || ''"
-            :is-visible="true"
-            class="card-dealing"
-          />
+          <Card v-for="(card, index) in playerHand" :key="`player-${index}-${card.suit}-${card.value}`"
+            :suit="card.suit" :value="card.value" :image="card.image || ''" :is-visible="true" class="card-dealing" />
         </div>
         <div v-if="playerHandValue.isSoft && phase === 'player-turn'" class="soft-hand-indicator">
           Soft Hand (Ace as 11)
@@ -173,15 +140,14 @@
           Stand
         </button>
         <button @click="doubleDown" class="btn btn-secondary"
-          :disabled="hasDoubledDown || playerHand.length !== 2 || chips < currentBet"
-        >
+          :disabled="hasDoubledDown || playerHand.length !== 2 || chips < currentBet">
           Double Down
         </button>
         <button @click="split" :disabled="!canSplit" class="btn btn-secondary">
           Split
         </button>
-        <button @click="placeInsurance" :disabled="!insuranceAvailable" class="btn btn-secondary">
-          Insurance
+        <button @click="betInsurance()" :disabled="!insuranceAvailable" class="btn btn-secondary btn-with-input">
+          Insurance <input id="betAmount" v-model.number="initialInsuranceBet" min="1" :max="currentBet / 2" type="number" @click.stop class="insurance-input-field"></input>
         </button>
       </div>
 
@@ -202,7 +168,7 @@
       </div>
 
       <button v-if="phase == 'victory'" @click="restartGame" class="btn btn-victory">
-          Play Again
+        Play Again
       </button>
     </div>
   </div>
@@ -252,18 +218,23 @@ const setupChips = ref(1000);
 const setupTarget = ref(2000);
 const setupNumDeck = ref(1);
 const betAmount = ref(10);
+let initialInsuranceBet = ref(0);
+
+function betInsurance() {
+  placeInsurance(initialInsuranceBet.value);
+}
 
 // Computed properties for validation
 const isValidBet = computed(() => {
   return betAmount.value >= minBet.value &&
-         betAmount.value <= chips.value &&
-         betAmount.value <= maxBet.value;
+    betAmount.value <= chips.value &&
+    betAmount.value <= maxBet.value;
 });
 
 const isValidSetup = computed(() => {
   return setupChips.value >= 50 &&
-         setupTarget.value >= setupChips.value * 1.5 &&
-         setupTarget.value <= 50000;
+    setupTarget.value >= setupChips.value * 1.5 &&
+    setupTarget.value <= 50000;
 });
 
 // Methods
@@ -421,6 +392,11 @@ function updateTargetMin() {
   transform: translateY(-2px);
 }
 
+.btn-with-input {
+  display: flex;
+  align-items: center;
+}
+
 .dealer-thinking {
   font-size: 1.2rem;
   font-style: italic;
@@ -469,7 +445,8 @@ function updateTargetMin() {
   font-weight: bold;
 }
 
-.chip-input, .num-deck-input {
+.chip-input,
+.num-deck-input {
   padding: 12px 20px;
   font-size: 1.2rem;
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -561,6 +538,17 @@ function updateTargetMin() {
   width: 150px;
 }
 
+.insurance-input-field {
+  margin-left: 6px;
+  font-size: 1.2rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-align: center;
+  height: 36px;
+}
+
 .preset-bets {
   display: flex;
   gap: 10px;
@@ -627,8 +615,10 @@ function updateTargetMin() {
   font-size: 1rem;
 }
 
-.numDeckLabel, .targetChipsLabel, .startingChipsLabel {
-  display: flex; 
+.numDeckLabel,
+.targetChipsLabel,
+.startingChipsLabel {
+  display: flex;
   height: 20px;
 }
 
@@ -636,7 +626,8 @@ function updateTargetMin() {
 .card-dealing {
   animation: cardSlideIn 0.6s ease-out;
   animation-fill-mode: forwards;
-  opacity: 0; /* Start invisible until animation begins */
+  opacity: 0;
+  /* Start invisible until animation begins */
 }
 
 @keyframes cardSlideIn {
@@ -644,9 +635,12 @@ function updateTargetMin() {
     opacity: 0;
     transform: translateY(-30px) scale(0.7) rotateX(90deg);
   }
+
   1% {
-    opacity: 1; /* Become visible immediately to respect face-down/face-up state */
+    opacity: 1;
+    /* Become visible immediately to respect face-down/face-up state */
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1) rotateX(0deg);
