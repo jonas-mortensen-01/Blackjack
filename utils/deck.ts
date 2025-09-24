@@ -12,9 +12,6 @@ export function createDeck(): Card[] {
         suit,
         value,
         image: `dist/assets/${suit}_${value}.png`
-        // Only include image path if you have actual card images
-        // If no images are available, omit this property to use suit/value fallback
-        // image: `${value}-${suit}.png`
       });
     }
   }
