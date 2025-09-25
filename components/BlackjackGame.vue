@@ -142,6 +142,10 @@
           class="card-dealing"
         />
       </div>
+      <div class="hand-value">
+        Value: {{ calculateHandDetails(hand.cards).value }}
+        <span v-if="calculateHandDetails(hand.cards).isSoft">(Soft)</span>
+      </div>
       <!-- <div v-if="hand.isSoft && phase === 'player-turn'" class="soft-hand-indicator">
         Soft Hand (Ace as 11)
       </div> -->
@@ -231,7 +235,8 @@ const {
   newGame,
   restartGame,
   doubleDown,
-  placeInsurance
+  placeInsurance,
+  calculateHandDetails
 } = useBlackjack();
 
 // Local reactive data for UI
@@ -628,6 +633,16 @@ function setActiveHand(index: number) {
   border-radius: 15px;
   font-weight: bold;
   font-size: 1.1rem;
+}
+
+.hand-value {
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+.hand-value span {
+  color: #4caf50; /* green for soft */
+  font-style: italic;
 }
 
 .soft-hand-indicator {

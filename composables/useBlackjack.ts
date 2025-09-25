@@ -404,49 +404,51 @@ export function useBlackjack() {
     insuranceAvailable.value = false;
 
     // Evaluate each hand individually
-    for (const hand of playerHands.value) {
+    playerHands.value.forEach((hand, index) => {
       const hv = calculateHandValue(hand.cards).value;
       const bet = hand.bet;
+      const handNumber = index + 1;
       const playerBlackjack = hv === 21 && hand.cards.length === 2;
 
       if (hv > 21) {
-        // player busts -> lose bet (already removed when placed)
-        messages.push(`Hand (bet ${bet}) busts with ${hv}. Dealer wins that hand.`);
-        continue;
+        // Bust → net loss = bet
+        messages.push(`Hand ${handNumber} busts with ${hv}. Lost ${bet} chips.`);
+        return;
       }
 
       if (dealerRevealedValue > 21) {
-        // dealer bust -> player wins 1:1
+        // Dealer bust → win 1:1
         totalWinnings += bet * 2;
-        messages.push(`Dealer busts. Hand wins ${bet} chips.`);
-        continue;
+        messages.push(`Dealer busts. Hand ${handNumber} wins ${bet} chips.`);
+        return;
       }
 
       if (playerBlackjack && !dealerBlackjack) {
         // Blackjack pays 3:2
         const payout = Math.floor(bet * 2.5);
         totalWinnings += payout;
-        messages.push(`Blackjack! Won ${payout - bet} chips (bet ${bet}).`);
-        continue;
+        const profit = payout - bet;
+        messages.push(`Hand ${handNumber} hits Blackjack! Won ${profit} chips.`);
+        return;
       }
 
       if (dealerBlackjack && !playerBlackjack) {
-        messages.push(`Dealer has blackjack. Lost bet ${bet}.`);
-        continue;
+        messages.push(`Hand ${handNumber} loses. Dealer has Blackjack. Lost ${bet} chips.`);
+        return;
       }
 
-      // regular comparison
+      // Regular comparison
       if (hv > dealerRevealedValue) {
         totalWinnings += bet * 2;
-        messages.push(`Hand (bet ${bet}) wins vs dealer (${hv} vs ${dealerRevealedValue}).`);
+        messages.push(`Hand ${handNumber} wins vs dealer (${hv} vs ${dealerRevealedValue}). Won ${bet} chips.`);
       } else if (hv < dealerRevealedValue) {
-        messages.push(`Hand (bet ${bet}) loses vs dealer (${hv} vs ${dealerRevealedValue}).`);
+        messages.push(`Hand ${handNumber} loses vs dealer (${hv} vs ${dealerRevealedValue}). Lost ${bet} chips.`);
       } else {
-        // push
+        // Push
         totalWinnings += bet;
-        messages.push(`Hand (bet ${bet}) pushes with dealer (${hv}). Bet returned.`);
+        messages.push(`Hand ${handNumber} pushes with dealer (${hv}). It's a Tie.`);
       }
-    }
+    });
 
     // Apply winnings to chips
     chips.value += totalWinnings;
@@ -523,6 +525,33 @@ export function useBlackjack() {
     insuranceAvailable.value = value === 'A' || ['10', 'J', 'Q', 'K'].includes(value);
   };
 
+  function calculateHandDetails(cards: Card[]) {
+    let total = 0;
+    let aces = 0;
+
+    for (const card of cards) {
+      if (card.value === 'A') {
+        aces++;
+        total += 11;
+      } else if (['K', 'Q', 'J'].includes(card.value)) {
+        total += 10;
+      } else {
+        total += parseInt(card.value);
+      }
+    }
+
+    // Downgrade aces if bust
+    while (total > 21 && aces > 0) {
+      total -= 10;
+      aces--;
+    }
+
+    return {
+      value: total,
+      isSoft: aces > 0 // if we still count at least one Ace as 11 → soft hand
+    };
+  }
+
   // Determines if the game can continue
   // If the player has no chips the game ends
   function newGame() {
@@ -587,6 +616,7 @@ export function useBlackjack() {
     restartGame,
     assignDealerHiddenCard,
     doubleDown,
-    placeInsurance
+    placeInsurance,
+    calculateHandDetails
   };
 }
