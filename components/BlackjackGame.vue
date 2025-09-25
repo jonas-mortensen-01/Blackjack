@@ -119,15 +119,35 @@
 
       <!-- Player Section -->
       <div class="player-section">
-        <h3>Player ({{ playerHandValue.value }})</h3>
-        <div class="hand">
-          <Card v-for="(card, index) in playerHand" :key="`player-${index}-${card.suit}-${card.value}`"
-            :suit="card.suit" :value="card.value" :image="card.image || ''" :is-visible="true" class="card-dealing" />
-        </div>
-        <div v-if="playerHandValue.isSoft && phase === 'player-turn'" class="soft-hand-indicator">
-          Soft Hand (Ace as 11)
-        </div>
+  <h3>Player Hands</h3>
+  <div class="player-hands">
+    <div
+      v-for="(hand, index) in playerHands"
+      :key="index"
+      :class="['hand-wrapper', { active: index === activeHandIndex }]"
+      @click="setActiveHand(index)"
+    >
+      <div class="hand-header">
+        <span>Hand {{ index + 1 }}</span>
+        <span v-if="index === activeHandIndex"> (Active)</span>
       </div>
+      <div class="hand">
+        <Card
+          v-for="(card, cardIndex) in hand.cards"
+          :key="`player-${index}-${cardIndex}-${card.suit}-${card.value}`"
+          :suit="card.suit"
+          :value="card.value"
+          :image="card.image || ''"
+          :is-visible="true"
+          class="card-dealing"
+        />
+      </div>
+      <!-- <div v-if="hand.isSoft && phase === 'player-turn'" class="soft-hand-indicator">
+        Soft Hand (Ace as 11)
+      </div> -->
+    </div>
+  </div>
+</div>
     </div>
 
     <!-- Game Controls -->
@@ -140,10 +160,10 @@
           Stand
         </button>
         <button @click="doubleDown" class="btn btn-secondary"
-          :disabled="hasDoubledDown || playerHand.length !== 2 || chips < currentBet">
+          :disabled="hasDoubledDown || playerHands.length !== 2 || chips < currentBet">
           Double Down
         </button>
-        <button @click="split" :disabled="!canSplit" class="btn btn-secondary">
+        <button @click="split(activeHandIndex)" :disabled="!canSplit" class="btn btn-secondary">
           Split
         </button>
         <button @click="betInsurance()" :disabled="!insuranceAvailable" class="btn btn-secondary btn-with-input">
@@ -182,7 +202,7 @@ import { useBlackjack } from '../composables/useBlackjack';
 const {
   // State
   deck,
-  playerHand,
+  playerHands,
   dealerHand,
   phase,
   gameMessage,
@@ -191,9 +211,10 @@ const {
   hasDoubledDown,
   insuranceAvailable,
   insuranceBet,
+  activeHandIndex,
 
   // Computed
-  playerHandValue,
+
   dealerHandValue,
   canSplit,
   canHit,
@@ -267,6 +288,12 @@ function enforceInsuranceBetLimits() {
 function updateTargetMin() {
   if (setupTarget.value < setupChips.value * 1.5) {
     setupTarget.value = setupChips.value * 2;
+  }
+}
+
+function setActiveHand(index: number) {
+  if (phase.value === 'player-turn') {
+    activeHandIndex.value = index;
   }
 }
 </script>
@@ -634,6 +661,32 @@ function updateTargetMin() {
 .startingChipsLabel {
   display: flex;
   height: 20px;
+}
+
+.player-hands {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  overflow-x: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.player-hands::after {
+  display: hidden !important;
+}
+
+.hand-wrapper {
+  padding: 10px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border 0.2s, transform 0.2s;
+}
+
+.hand-wrapper.active {
+  border-color: #ffeb3b;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* Card animations */
