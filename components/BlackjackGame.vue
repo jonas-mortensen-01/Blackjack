@@ -3,7 +3,28 @@
     <div class="game-header">
       <h1>Blackjack Game</h1>
       <div class="game-message">{{ gameMessage }}</div>
+
+      <button class="rules-btn" @click="showRules = !showRules">?</button>
     </div>
+      
+<!-- Rules Overlay -->
+  <div v-if="showRules" class="rules-overlay">
+    <div class="rules-content">
+      <h3>How to Play Blackjack</h3>
+      <ul>
+        <li>1: Get two cards; dealer gets two (one hidden).</li>
+        <li>2: Card values numbers equals face value, Jack Queen or King counts as a 10, Ace counts as 1 or 11.</li>
+        <li>3: Try to reach 21 without going over.</li>
+        <li>4: Hit = take a card; Stand = keep your hand.</li>
+        <li>5: You can Split pairs or Double Down in some cases.</li>
+        <li>6: Split allows to place another bet on an additional hand if you have 2 matching cards</li>
+        <li>7: Double down allows you to double your bet for a hand but only draws you one more card</li>
+        <li>8: Dealer must draw until at least 17.</li>
+        <li>9: Closest to 21 wins; Blackjack (Ace + 10) pays 3:2.</li>
+      </ul>
+      <button class="btn btn-primary" @click="showRules = false">Close</button>
+    </div>
+  </div>
 
     <!-- Setup Screen -->
     <div v-if="phase === 'setup'" class="setup-screen">
@@ -245,6 +266,7 @@ const setupTarget = ref(2000);
 const setupNumDeck = ref(1);
 const betAmount = ref(10);
 let initialInsuranceBet = ref(1);
+const showRules = ref(false);
 
 // Checks if the attempted bet is valid and places it
 function betInsurance() {
@@ -304,6 +326,54 @@ function setActiveHand(index: number) {
 </script>
 
 <style scoped>
+.rules-btn {
+  margin-left: 10px;
+  background: #2196f3;
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.rules-btn:hover {
+  opacity: .8;
+}
+
+.rules-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.rules-content {
+  background: #fff;
+  color: #000;
+  padding: 20px 30px;
+  border-radius: 12px;
+  max-width: 500px;
+  text-align: left;
+}
+.rules-content h3 {
+  margin-bottom: 15px;
+}
+.rules-content ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+.rules-content li {
+  margin: 6px 0;
+}
+
 .info-bubble {
   display: flex;
   flex-direction: column;
