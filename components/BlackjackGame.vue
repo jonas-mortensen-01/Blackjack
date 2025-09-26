@@ -2,9 +2,11 @@
   <div class="blackjack-game">
     <div class="game-header">
       <h1>Blackjack Game</h1>
-      <div class="game-message">{{ gameMessage }}</div>
-
-      <button class="rules-btn" @click="showRules = !showRules">?</button>
+      <div class="feedback-container">
+        <div class="game-message">{{ gameMessage }}</div>
+        
+        <button class="rules-btn" @click="showRules = !showRules">?</button>
+      </div>
     </div>
       
 <!-- Rules Overlay -->
@@ -345,6 +347,7 @@ function setActiveHand(index: number) {
   border-radius: 50%;
   width: 40px;
   height: 40px;
+  min-width: 40px;
   font-size: 18px;
   cursor: pointer;
 }
@@ -673,6 +676,13 @@ function setActiveHand(index: number) {
   color: white;
   text-align: center;
   height: 36px;
+}
+
+.feedback-container {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
 }
 
 .preset-bets {
