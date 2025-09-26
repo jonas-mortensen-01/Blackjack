@@ -827,7 +827,8 @@ function setActiveHand(index: number) {
 
 @media (max-width: 600px) {
   .blackjack-game {
-    padding: 10px;
+    padding: 50px 5px;
+    max-height: min-content;
   }
 
   .game-header h1 {
