@@ -2,7 +2,7 @@ Project Title:
   Blackjack
 
 Description:
-  This project has been made using HTML, CSS and Typescrip
+  This project has been made using HTML, CSS and Typescript
   with a vue framework to allow for better communication 
   between the functional and visual aspects of the app
 
