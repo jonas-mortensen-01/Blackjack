@@ -301,11 +301,11 @@ export function useBlackjack() {
     const current = getActiveHand();
     if (current) current.isFinished = true;
 
-    // Find next unfinished hand
-    const nextIndex = playerHands.value.findIndex((h, idx) => idx > activeHandIndex.value && !h.isFinished);
+    // Find next unfinished hand to play as
+    const nextIndex = playerHands.value.findIndex((h) => !h.isFinished);
     if (nextIndex !== -1) {
       activeHandIndex.value = nextIndex;
-      gameMessage.value = `Now playing hand ${activeHandIndex.value + 1}.`;
+      gameMessage.value = `Now playing hand ${nextIndex + 1}.`;
       return;
     }
 
@@ -503,10 +503,10 @@ export function useBlackjack() {
 
     // Can this hand be split?
     const canSplitHand =
-    card1.value === card2.value || // same value (10+10, J+J, etc.)
-    (faceCards.includes(card1.value) && faceCards.includes(card2.value)) || // both face cards
-    ((card1.value === '10' && faceCards.includes(card2.value)) || // 10 + face card
-     (card2.value === '10' && faceCards.includes(card1.value)));
+      card1.value === card2.value || // same value (10+10, J+J, etc.)
+      (faceCards.includes(card1.value) && faceCards.includes(card2.value)) || // both face cards
+      ((card1.value === '10' && faceCards.includes(card2.value)) || // 10 + face card
+        (card2.value === '10' && faceCards.includes(card1.value)));
 
     if (!canSplitHand) {
       gameMessage.value = 'This hand cannot be split.';
