@@ -165,8 +165,8 @@
       </div>
       <div class="hand-value">
         Value: 
-        <span v-if="calculateHandDetails(hand.cards).value > 21">Bust</span>
-        <span v-else>
+        <span v-if="calculateHandDetails(hand.cards).value > 21" class="hand-bust">Bust</span>
+        <span v-else class="hand-win">
           {{ calculateHandDetails(hand.cards).value }}
           <span v-if="calculateHandDetails(hand.cards).isSoft">(Soft)</span>
         </span>
@@ -720,8 +720,13 @@ function setActiveHand(index: number) {
   margin-top: 0.5rem;
 }
 
-.hand-value span {
+.hand-win {
   color: #4caf50; /* green for soft */
+  font-style: italic;
+}
+
+.hand-bust {
+  color: rgb(255, 81, 81);
   font-style: italic;
 }
 
