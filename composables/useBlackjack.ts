@@ -222,6 +222,16 @@ export function useBlackjack() {
   function placeInsurance(initialInsuranceBet: number) {
     if (!insuranceAvailable.value) return;
 
+    if (!insuranceAvailable.value) {
+      gameMessage.value = "Insurance is not available for this hand.";
+      return;
+    }
+
+    if (chips.value < initialInsuranceBet) {
+      gameMessage.value = `Not enough chips to place insurance. You have ${chips.value} chips.`;
+      return;
+    }
+
     const insurance = initialInsuranceBet;
     chips.value -= insurance;
     insuranceBet.value = insurance;
