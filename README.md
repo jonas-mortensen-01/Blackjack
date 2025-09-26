@@ -6,6 +6,9 @@ Description:
   with a vue framework to allow for better communication 
   between the functional and visual aspects of the app
 
+Dependencies:
+  - Latest version of Node
+
 How to run:
   - Clone it into a repo placed locally on your machine
   - Open it in visual studio code
