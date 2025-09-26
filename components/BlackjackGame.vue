@@ -185,7 +185,7 @@
           Stand
         </button>
         <button @click="doubleDown" class="btn btn-secondary"
-          :disabled="hasDoubledDown || playerHands.length == 2 || chips < currentBet">
+          :disabled="hasDoubledDown || playerHands.length > 1 || chips < currentBet">
           Double Down
         </button>
         <button @click="split(activeHandIndex)" :disabled="!canSplit" class="btn btn-secondary">
