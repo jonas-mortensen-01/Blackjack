@@ -91,7 +91,7 @@ export function useBlackjack() {
   const cannotDoubleDown = computed(() => {
     if (phase.value !== 'player-turn') return false;
     const hv = playerHandValue.value;
-    return ((hv && hv.value >= 21 && !hv.isSoft) || hasDoubledDown.value || playerHands.value.length > 1 || chips < currentBet || playerHands.value[activeHandIndex.value]?.cards.length > 2) ? true : false;
+    return ((hv && hv.value >= 21 && !hv.isSoft) || hasDoubledDown.value || playerHands.value.length > 1 || chips.value < currentBet.value || playerHands.value[activeHandIndex.value]?.cards.length > 2) ? true : false;
   });
 
   // If the player has a hand with value less than 21 the player can hit
