@@ -40,14 +40,10 @@ export function useBlackjack() {
   const insuranceAvailable = ref(false);
 
   // Computed values
+  // Gets the active player hand from an index
   function getActiveHand(): Hand | undefined {
     return playerHands.value[activeHandIndex.value];
   }
-
-  // computed array of values for convenience
-  const playerHandsValues = computed(() =>
-    playerHands.value.map(h => calculateHandValue(h.cards))
-  );
 
   // active hand value (used by UI for the hand the player is acting on)
   const playerHandValue = computed(() => {
@@ -168,6 +164,7 @@ export function useBlackjack() {
       hasInsurance: false
     } as Hand];
 
+    // Reset game parameters
     activeHandIndex.value = 0;
     dealerHand.value = [];
     phase.value = 'dealing';
@@ -281,7 +278,6 @@ export function useBlackjack() {
 
   // Finds the placeholder card in the dealers hand and replaces it with and actual card
   function assignDealerHiddenCard() {
-    // Find the placeholder card and replace it with a real card
     const placeholderIndex = dealerHand.value.findIndex(card => card.value === 'hidden');
     if (placeholderIndex !== -1) {
       const realCard = dealCard();
@@ -419,20 +415,20 @@ export function useBlackjack() {
       const playerBlackjack = hv === 21 && hand.cards.length === 2;
 
       if (hv > 21) {
-        // Bust → net loss = bet
+        // Bust
         messages.push(`Hand ${handNumber} busts with ${hv}. Lost ${bet} chips.`);
         return;
       }
 
       if (dealerRevealedValue > 21) {
-        // Dealer bust → win 1:1
+        // Dealer bust
         totalWinnings += bet * 2;
         messages.push(`Dealer busts. Hand ${handNumber} wins ${bet} chips.`);
         return;
       }
 
       if (playerBlackjack && !dealerBlackjack) {
-        // Blackjack pays 3:2
+        // Blackjack
         const payout = Math.floor(bet * 2.5);
         totalWinnings += payout;
         const profit = payout - bet;
@@ -445,7 +441,7 @@ export function useBlackjack() {
         return;
       }
 
-      // Regular comparison
+      // Regular comparison for player hand with dealer hand
       if (hv > dealerRevealedValue) {
         totalWinnings += bet * 2;
         messages.push(`Hand ${handNumber} wins vs dealer (${hv} vs ${dealerRevealedValue}). Won ${bet} chips.`);
@@ -484,7 +480,8 @@ export function useBlackjack() {
     }
   }
 
-  // Split implementation / Not made yet 
+  // Split implementation
+  // Uses index to find the active player hand of which to run the split
   function split(indexToSplit: number) {
     if (phase.value !== 'player-turn') return;
 
@@ -547,6 +544,7 @@ export function useBlackjack() {
     insuranceAvailable.value = value === 'A' || ['10', 'J', 'Q', 'K'].includes(value);
   };
 
+  // Returns the value of a hand 
   function calculateHandDetails(cards: Card[]) {
     let total = 0;
     let aces = 0;

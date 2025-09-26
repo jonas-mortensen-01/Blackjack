@@ -7,6 +7,8 @@ import type { Card, Suit, CardValue } from '../types/Card';
 // which will make it use an alternative hard coded card front with lower detail.
 export function createDeck(numDecks: number): Card[] {
   const suits: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
+
+  // Enum to represent the values of the cards
   const values: CardValue[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
   const deck: Card[] = [];
@@ -42,7 +44,7 @@ export function shuffleDeck(deck: Card[]): Card[] {
 }
 
 // Gets takes a card input and returns the actual value of the card
-// 0 means a placeholder which will be hidden meaning back face up and without and initial value
+// 0 is a placeholder which will be hidden meaning back face up and without and initial value
 export function getCardValue(card: Card): number {
   if (card.value === 'hidden') return 0; // Placeholder cards have no value
 
