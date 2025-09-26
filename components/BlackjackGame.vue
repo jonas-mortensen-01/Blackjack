@@ -416,12 +416,13 @@ function setActiveHand(index: number) {
 }
 
 .blackjack-game {
+  transform: scale(.67) translateY(-25%);
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
   font-family: 'Arial', sans-serif;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
   min-height: 100vh;
+  max-height: 100vh;
   color: white;
 }
 
