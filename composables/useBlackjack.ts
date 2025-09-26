@@ -367,6 +367,7 @@ export function useBlackjack() {
 
     // Deduct chips and double the bet on this hand
     chips.value -= hand.bet;
+    currentBet.value += currentBet.value;
     hand.bet = hand.bet * 2;
     hand.hasDoubled = true;
 
