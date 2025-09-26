@@ -80,6 +80,14 @@ export function useBlackjack() {
     // Both face cards
     if (faceCards.includes(card1.value) && faceCards.includes(card2.value)) return true;
 
+    // Matches a 10 against possible face cards in hand
+    if (
+      (card1.value === '10' && faceCards.includes(card2.value)) ||
+      (card2.value === '10' && faceCards.includes(card1.value))
+    ) {
+      return true;
+    }
+
     return false;
   });
 
@@ -478,21 +486,35 @@ export function useBlackjack() {
 
   // Split implementation / Not made yet 
   function split(indexToSplit: number) {
-    // safety checks
     if (phase.value !== 'player-turn') return;
+
     const hand = playerHands.value[indexToSplit];
-    if (!hand) return;
-    if (hand.cards.length !== 2) return;
-    if (hand.cards[0].value !== hand.cards[1].value) return;
+    if (!hand || hand.cards.length !== 2) return;
+
+    const [card1, card2] = hand.cards;
+    const faceCards = ['J', 'Q', 'K'];
+
+    // Can this hand be split?
+    const canSplitHand =
+    card1.value === card2.value || // same value (10+10, J+J, etc.)
+    (faceCards.includes(card1.value) && faceCards.includes(card2.value)) || // both face cards
+    ((card1.value === '10' && faceCards.includes(card2.value)) || // 10 + face card
+     (card2.value === '10' && faceCards.includes(card1.value)));
+
+    if (!canSplitHand) {
+      gameMessage.value = 'This hand cannot be split.';
+      return;
+    }
+
     if (chips.value < hand.bet) {
       gameMessage.value = 'Not enough chips to split.';
       return;
     }
 
-    // Deduct the extra bet for the new hand
+    // Deduct chips for the new hand
     chips.value -= hand.bet;
 
-    // Pop one card and make a new hand with it
+    // Create a new hand from one of the cards
     const movedCard = hand.cards.pop()!;
     const newHand: Hand = {
       cards: [movedCard],
@@ -500,24 +522,24 @@ export function useBlackjack() {
       insuranceBet: 0,
       isFinished: false,
       hasDoubled: false,
-      hasInsurance: false
+      hasInsurance: false,
     };
 
-    // Insert new hand after the current index
+    // Insert new hand next to the current one
     playerHands.value.splice(indexToSplit + 1, 0, newHand);
 
     // Deal one card to each split hand
-    const card1 = dealCard();
-    if (card1) hand.cards.push(card1);
-    const card2 = dealCard();
-    if (card2) newHand.cards.push(card2);
+    const cardForOriginal = dealCard();
+    if (cardForOriginal) hand.cards.push(cardForOriginal);
 
-    // Keep the playerActing index at the first of the two split hands (conventional)
+    const cardForNew = dealCard();
+    if (cardForNew) newHand.cards.push(cardForNew);
+
+    // Keep active hand on the first split hand
     activeHandIndex.value = indexToSplit;
 
-    gameMessage.value = 'Split performed. Playing first split hand.';
+    gameMessage.value = `Split performed on hand ${indexToSplit + 1}. Now playing it.`;
   }
-
 
   // Check if insurance is available
   function checkInsurance() {
