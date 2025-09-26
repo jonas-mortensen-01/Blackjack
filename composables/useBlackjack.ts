@@ -87,6 +87,13 @@ export function useBlackjack() {
     return false;
   });
 
+  // If the player can't double down
+  const cannotDoubleDown = computed(() => {
+    if (phase.value !== 'player-turn') return false;
+    const hv = playerHandValue.value;
+    return ((hv && hv.value >= 21 && !hv.isSoft) || hasDoubledDown.value || playerHands.value.length > 1 || chips < currentBet || playerHands.value[activeHandIndex.value]?.cards.length > 2) ? true : false;
+  });
+
   // If the player has a hand with value less than 21 the player can hit
   const canHit = computed(() => {
     if (phase.value !== 'player-turn') return false;
@@ -488,6 +495,8 @@ export function useBlackjack() {
     const hand = playerHands.value[indexToSplit];
     if (!hand || hand.cards.length !== 2) return;
 
+    if (playerHands.value.length >= 8) return;
+
     const [card1, card2] = hand.cards;
     const faceCards = ['J', 'Q', 'K'];
 
@@ -618,6 +627,7 @@ export function useBlackjack() {
     dealerHandValue,
     canSplit,
     canHit,
+    cannotDoubleDown,
     canStand,
     canBet,
     maxBet,

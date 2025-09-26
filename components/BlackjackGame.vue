@@ -164,8 +164,12 @@
         />
       </div>
       <div class="hand-value">
-        Value: {{ calculateHandDetails(hand.cards).value }}
-        <span v-if="calculateHandDetails(hand.cards).isSoft">(Soft)</span>
+        Value: 
+        <span v-if="calculateHandDetails(hand.cards).value > 21">Bust</span>
+        <span v-else>
+          {{ calculateHandDetails(hand.cards).value }}
+          <span v-if="calculateHandDetails(hand.cards).isSoft">(Soft)</span>
+        </span>
       </div>
       <!-- <div v-if="hand.isSoft && phase === 'player-turn'" class="soft-hand-indicator">
         Soft Hand (Ace as 11)
@@ -185,7 +189,7 @@
           Stand
         </button>
         <button @click="doubleDown" class="btn btn-secondary"
-          :disabled="hasDoubledDown || playerHands.length > 1 || chips < currentBet">
+          :disabled="cannotDoubleDown">
           Double Down
         </button>
         <button @click="split(activeHandIndex)" :disabled="!canSplit" class="btn btn-secondary">
@@ -233,7 +237,6 @@ const {
   gameMessage,
   chips,
   currentBet,
-  hasDoubledDown,
   insuranceAvailable,
   insuranceBet,
   activeHandIndex,
@@ -244,6 +247,7 @@ const {
   canSplit,
   canHit,
   canStand,
+  cannotDoubleDown,
   maxBet,
   minBet,
 
@@ -318,10 +322,16 @@ function updateTargetMin() {
   }
 }
 
+// Sets active player hand, also prevents selecting hands that have gone bust
 function setActiveHand(index: number) {
-  if (phase.value === 'player-turn') {
-    activeHandIndex.value = index;
-  }
+  if (phase.value !== 'player-turn') return;
+
+  const hand = playerHands.value[index];
+  const handValue = calculateHandDetails(hand.cards).value;
+
+  if (handValue > 21) return; // Prevent selecting a busted hand
+
+  activeHandIndex.value = index;
 }
 </script>
 
